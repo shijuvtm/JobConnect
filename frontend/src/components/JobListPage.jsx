@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink,useNavigate } from 'react-router-dom';
 export default function JobListPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const username = localStorage.getItem("username");
-  
+  const navigate = useNavigate();  
  useEffect(() => {
     const token = localStorage.getItem("access");
 
-    // 🔒 If no token → force login
-    if (!token) {
+   if (!token) {
       navigate("/login");
       return;
     }
@@ -52,7 +51,7 @@ export default function JobListPage() {
             <a href="#" className="hover:text-blue-700 transition px-12">Jobs</a>
             <a href="#" className="hover:text-blue-700 transition px-30">Companies</a>
             <a href="#" className="hover:text-blue-700 transition ">My Applications</a>
-            <NavLink to="/register" className="hover:text-blue-700 transition"> Logout </NavLink>
+            <NavLink to="/login" onClick={() => { localStorage.clear();}} className="hover:text-blue-700 transition">Logout</NavLink>
           </nav>
 
           <div className="flex items-center gap-4">
@@ -81,7 +80,7 @@ export default function JobListPage() {
             <a href="#" className="block text-sm font-medium text-gray-700 hover:text-blue-700">Jobs</a>
             <a href="#" className="block text-sm font-medium text-gray-700 hover:text-blue-700">Companies</a>
             <a href="#" className="block text-sm font-medium text-gray-700 hover:text-blue-700">My Applications</a>
-            <NavLink to={"/register"} className="block text-sm font-medium text-gray-700 hover:text-blue-700">Logout </NavLink>
+            <NavLink to="/login" onClick={() => { localStorage.clear();}} className="hover:text-blue-700 transition">Logout</NavLink>
           </nav>
         )}
       </header>
@@ -126,6 +125,9 @@ export default function JobListPage() {
                   <span className="flex items-center gap-1 rounded-md bg-gray-100 px-3 py-1.5">
                     📍 {job.location}
                   </span>
+                    <span className="flex items-center gap-1 rounded-md bg-blue-50 text-blue-700 px-3 py-1.5 border border-blue-100">
+                   💼  {job.experience} Years
+                   </span>
                   <span className="flex items-center gap-1 rounded-md bg-gray-100 px-3 py-1.5">
                     💰 {job.salary_range}
                   </span>

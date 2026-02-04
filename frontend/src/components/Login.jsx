@@ -47,7 +47,7 @@ export default function Login() {
     
     useEffect(() => {
       if (message === "Login successful") { 
-       navigate("/jobs",{replace:true});
+       navigate("/jobs/",{replace:true});
      }
     }, [message]);
 
@@ -62,10 +62,10 @@ export default function Login() {
 
                     {/* Desktop Nav */}
                     <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-700">
-                        <a href="#" className="hover:text-blue-700">Jobs</a>
-                        <a href="#" className="hover:text-blue-700">Companies</a>
+                        <NavLink to="/job" className="hover:text-blue-700">Jobs</NavLink>
+                        <NavLink to="/company" className="hover:text-blue-700">Companies</NavLink>
                         <a href="#" className="hover:text-blue-700">Services</a>
-                        <a href="#" className="hover:text-blue-700 font-bold">Register</a>
+                        <NavLink to="/register" className="hover:text-blue-700 font-bold">Register</NavLink>
                     </nav>
 
                     {/* Mobile Hamburger Button */}
@@ -86,10 +86,10 @@ export default function Login() {
                 {/* Mobile Menu Dropdown */}
                 {isMenuOpen && (
                     <div className="md:hidden bg-white border-t px-6 py-4 space-y-4 shadow-lg">
-                        <a href="#" className="block text-gray-700 hover:text-blue-700">Jobs</a>
-                        <a href="#" className="block text-gray-700 hover:text-blue-700">Companies</a>
+                        <NavLink to="/job" className="block text-gray-700 hover:text-blue-700">Jobs</NavLink>
+                        <NavLink to="/company" className="block text-gray-700 hover:text-blue-700">Companies</NavLink>
                         <a href="#" className="block text-gray-700 hover:text-blue-700">Services</a>
-                        <a href="#" className="block text-blue-700 font-bold">Register</a>
+                        <NavLink to="/register" className="block text-blue-700 font-bold">Register</NavLink>
                     </div>
                 )}
             </header>

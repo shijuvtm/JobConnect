@@ -8,8 +8,8 @@ export default function ApplyPage() {
   const { jobId } = useParams();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const username = localStorage.getItem("username") || "User"; 
   const userId = localStorage.getItem("userId");
-
   // 🔒 Page-level protection
   useEffect(() => {
     const token = localStorage.getItem("access");
