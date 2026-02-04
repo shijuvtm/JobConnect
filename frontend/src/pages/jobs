@@ -1,0 +1,47 @@
+import { MapPin, Briefcase } from "lucide-react";
+import {NavLink} from "react-router-dom";
+
+const jobs = Array.from({ length: 20 }, (_, i) => 
+({
+ id: i + 1, 
+title: `Software Engineer ${i + 1}`,
+company: ["SuperNova", "CodeCraft", "PixelWorks", "NextGen", "TechHive"][i % 5],
+location: ["Chennai", "Bangalore", "Hyderabad", "Pune", "Remote"][i % 5], 
+salary: "₹4 – 10 LPA", type: ["Full Time", "Remote", "Hybrid"][i % 3], }));
+
+export default function JobPage() { 
+return (
+ <div className="min-h-screen bg-gray-50"> 
+<div className="max-w-7xl mx-auto px-4 py-10">
+ <h1 className="text-3xl font-bold mb-8">All Jobs</h1>
+
+<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {jobs.map((job) => (
+        <div
+          key={job.id}
+          className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition"
+        >
+          <h2 className="font-bold text-lg">{job.title}</h2>
+          <p className="text-sm text-gray-500">{job.company}</p>
+
+          <div className="mt-4 space-y-2 text-sm">
+            <p className="flex items-center gap-2">
+              <MapPin size={16} /> {job.location}
+            </p>
+            <p className="flex items-center gap-2">
+              <Briefcase size={16} /> {job.type}
+            </p>
+            <p className="font-semibold">{job.salary}</p>
+          </div>
+
+          <NavLink to="\register" className="mt-5 w-full bg-blue-700 text-white py-2 rounded-xl font-semibold hover:bg-blue-800">
+            View Details
+          </NavLink>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
+); 
+}
