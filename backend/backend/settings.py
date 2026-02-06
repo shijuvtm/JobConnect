@@ -16,8 +16,7 @@ from dotenv import load_dotenv
 from urllib.parse import urlparse, parse_qsl
 from datetime import timedelta
 load_dotenv()
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 # Replace the DATABASES section of your settings.py with this
 tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
