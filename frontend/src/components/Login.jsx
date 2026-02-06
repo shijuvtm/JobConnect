@@ -1,12 +1,13 @@
 import React, { useState , useEffect} from 'react';
 import { useActionState } from 'react';
 import { NavLink,useNavigate } from "react-router-dom";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 async function loginAction(prevState, formData) {
   try {
     const json = Object.fromEntries(formData);
 
-    const res = await fetch("http://127.0.0.1:8000/login", {
+    const res = await fetch(`${BASE_URL}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
