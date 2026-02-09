@@ -80,3 +80,25 @@ def apply_job(request):
         )
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def applyed_list(request):
+    applications=Application.objects.filter(applicant=request.user).order_by("-applied_on")
+    serializer = ApplicationSerializer(applications, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def application_detail(request, pk):
+    try:
+        # We filter by both the ID and the applicant to ensure privacy
+        application = Application.objects.get(pk=pk, applicant=request.user)
+        serializer = ApplicationSerializer(application)
+        return Response(serializer.data)
+    except Application.DoesNotExist:
+        return Response(
+            {"message": "Application not found or unauthorized"}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+

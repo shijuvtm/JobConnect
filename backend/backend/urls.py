@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from .views import hello_api,register_user,jwt_login,job_list,apply_job
+from .views import hello_api,register_user,jwt_login,job_list,apply_job,applyed_list,application_detail
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("hello/",hello_api),
@@ -24,4 +24,6 @@ urlpatterns = [
     path("login",jwt_login),
     path("jobs",job_list),
     path("apply",apply_job),
+    path("my-application",applyed_list),
+    path('my-application/<int:pk>/',application_detail)
 ]

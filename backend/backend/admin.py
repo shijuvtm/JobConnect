@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Job, Application
 from django.utils.timezone import now
 
-
+"""
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
     list_display = (
@@ -31,3 +31,4 @@ class ApplicationAdmin(admin.ModelAdmin):
     list_display = ('job', 'applicant', 'applied_at')
     list_filter = ('job',)
     search_fields = ('applicant__username', 'job__title')
+"""

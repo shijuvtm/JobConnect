@@ -27,6 +27,7 @@ class Application(models.Model):
          ('hired','Hired'),
     )
     job=models.ForeignKey(Job,on_delete=models.CASCADE)
+    resume = models.FileField(upload_to='resumes/', null=True, blank=True)
     applicant=models.ForeignKey(User,on_delete=models.CASCADE)
     status=models.CharField(max_length=20,choices=STATUS_CHOICE, default='pending')
     applied_on=models.DateTimeField(auto_now_add=True)
