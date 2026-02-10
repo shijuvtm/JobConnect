@@ -24,6 +24,6 @@ urlpatterns = [
     path("login",jwt_login),
     path("jobs",job_list),
     path("apply",apply_job),
-    path("my-application",applyed_list),
+    path("my-application/",applyed_list),
     path('my-application/<int:pk>/',application_detail)
 ]
