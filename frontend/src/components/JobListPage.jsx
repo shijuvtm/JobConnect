@@ -48,9 +48,9 @@ export default function JobListPage() {
           <h1 className="text-xl font-bold text-blue-700">JobConnect</h1>
 
           <nav className="hidden md:flex text-sm font-medium text-gray-700">
-            <a href="#" className="hover:text-blue-700 transition px-12">Jobs</a>
-            <a href="#" className="hover:text-blue-700 transition px-30">Companies</a>
-            <a href="#" className="hover:text-blue-700 transition ">My Applications</a>
+            <NavLink to="/jobs" className="hover:text-blue-700 transition px-12">Jobs</NavLink>
+            <NavLink to="/services" className="hover:text-blue-700 transition px-30">Companies</NavLink>
+            <NavLink to="/application" className="hover:text-blue-700 transition ">My Applications</NavLink>
             <NavLink to="/login" onClick={() => { localStorage.clear();}} className="hover:text-blue-700 transition">Logout</NavLink>
           </nav>
 
@@ -76,13 +76,13 @@ export default function JobListPage() {
         </div>
 
         {isMenuOpen && (
-          <nav className="md:hidden border-t bg-white px-4 py-4 space-y-3 shadow-inner">
-            <a href="#" className="block text-sm font-medium text-gray-700 hover:text-blue-700">Jobs</a>
-            <a href="#" className="block text-sm font-medium text-gray-700 hover:text-blue-700">Companies</a>
-            <a href="#" className="block text-sm font-medium text-gray-700 hover:text-blue-700">My Applications</a>
-            <NavLink to="/login" onClick={() => { localStorage.clear();}} className="hover:text-blue-700 transition">Logout</NavLink>
-          </nav>
-        )}
+         <nav className="md:hidden border-t bg-white px-4 py-4 space-y-3 shadow-inner">
+         <NavLink to="/jobs" className="block text-sm font-medium text-gray-700 hover:text-blue-700">Jobs</NavLink>
+         <NavLink to="/services" className="block text-sm font-medium text-gray-700 hover:text-blue-700">Services</NavLink>
+         <NavLink to="/application" className="block text-sm font-medium text-gray-700 hover:text-blue-700">My Applications </NavLink>
+         <NavLink to="/login" onClick={() => { localStorage.clear(); }} className="block text-sm font-medium text-gray-700 hover:text-blue-700" >Logout</NavLink>
+       </nav>
+      )}
       </header>
 
       <main className="mx-auto w-full max-w-7xl px-6 py-8 flex-1">
