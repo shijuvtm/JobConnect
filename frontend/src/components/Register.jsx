@@ -1,13 +1,14 @@
 import { useState } from "react";
+import { NavLink,useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema } from "../schemas/registerSchema";
-import { UserRoundPen, Mail, Lock, User, Phone, Eye, EyeOff } from 'lucide-react';
-
+import { UserRoundPen, BriefcaseBusiness, GraduationCap } from "lucide-react";
 export default function Register() {
   const [step, setStep] = useState(1);
   const [showPwd, setShowPwd] = useState(false);
-
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -18,140 +19,257 @@ export default function Register() {
     mode: "onTouched",
   });
 
-  // FIX: Only validate fields present in the current step
-  const next = async () => {
-    let fieldsToValidate = [];
-    if (step === 1) {
-      fieldsToValidate = ["full_name", "phone", "email", "password", "confirmPassword"];
-    } else if (step === 2) {
-      fieldsToValidate = ["degree", "university", "graduation_year"];
-    }
+  const step1Fields = ["full_name", "phone", "email", "password", "confirmPassword"];
+  const step2Fields = ["degree", "university", "graduation_year"];
+  const step3Fields = ["work_type", "expected_salary", "skills"];
 
-    const valid = await trigger(fieldsToValidate);
+  const nextStep = async () => {
+    const fields = step === 1 ? step1Fields : step2Fields;
+    const valid = await trigger(fields);
     if (valid) setStep(step + 1);
   };
 
-  const back = () => setStep(step - 1);
+  const prevStep = () => setStep(step - 1);
 
   const onSubmit = async (data) => {
-    const { confirmPassword, ...postData } = data; // Cleaner way to remove confirmPassword
+  delete data.confirmPassword;
 
+  const formData = new FormData();
+
+  // Append normal fields
+  formData.append("full_name", data.full_name);
+  formData.append("phone", data.phone);
+  formData.append("email", data.email);
+  formData.append("password", data.password);
+  formData.append("degree", data.degree);
+  formData.append("university", data.university);
+  formData.append("graduation_year", data.graduation_year);
+  formData.append("work_type", data.work_type);
+  formData.append("expected_salary", data.expected_salary);
+  formData.append("skills", data.skills);
+
+  // Append resume safely
+  if (data.resume && data.resume.length > 0) {
+    formData.append("resume", data.resume[0]);
+  }
+
+  try {
     const res = await fetch("http://127.0.0.1:8000/register", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(postData),
+      body: formData,   // 🚀 DO NOT set headers
     });
 
     const result = await res.json();
-    alert(res.ok ? "Registered successfully 🎉" : JSON.stringify(result));
-  };
 
+    if (res.ok) {
+      alert("Registration successful 🎉");
+      navigate("/login");
+    } else {
+      alert(JSON.stringify(result));
+    }
+
+  } catch (error) {
+    console.error(error);
+    alert("Upload failed");
+  }
+};   
+    
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 font-sans">
+   <><header className="bg-white border-b sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                    <div className="text-2xl font-bold text-blue-700">
+                        JobConnect
+                    </div>
+
+                    {/* Desktop Nav */}
+                    <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-700">
+                        <NavLink to="/job" className="hover:text-blue-700">Jobs</NavLink>
+                        <NavLink to="/company" className="hover:text-blue-700">Companies</NavLink>
+                        <a href="#" className="hover:text-blue-700">Services</a>
+                        <NavLink to="/login" className="hover:text-blue-700 font-bold">Login</NavLink>
+                    </nav>
+
+                    {/* Mobile Hamburger Button */}
+                    <button
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        className="md:hidden p-2 rounded-md focus:bg-gray-100 outline-none"
+                    >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {isMenuOpen ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                            )}
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Mobile Menu Dropdown */}
+                {isMenuOpen && (
+                    <div className="md:hidden bg-white border-t px-6 py-4 space-y-4 shadow-lg">
+                        <NavLink to="/job" className="block text-gray-700 hover:text-blue-700">Jobs</NavLink>
+                        <NavLink to="/company" className="block text-gray-700 hover:text-blue-700">Companies</NavLink>
+                        <a href="#" className="block text-gray-700 hover:text-blue-700">Services</a>
+                        <NavLink to="/login" className="block text-blue-700 font-bold">Login</NavLink>
+                    </div>
+                )}
+            </header>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl space-y-5"
+        className="w-full max-w-md bg-white p-6 rounded-2xl shadow-lg space-y-5"
       >
-        <div className="flex flex-col items-center mb-4">
-          <UserRoundPen className="text-blue-600 mb-2" size={60}/>
-          <h2 className="text-2xl font-bold text-gray-800">Create Account</h2>
-          <p className="text-sm text-gray-400">Step {step} of 2</p> 
-          {/* Note: I adjusted steps to 2 since we moved items, or keep 3 if Step 2 is now different */}
-        </div>
+        <p className="text-center text-sm text-gray-500">Step {step} of 3</p>
 
-        {/* STEP 1: Basic Info */}
+        {/* STEP 1 */}
         {step === 1 && (
-          <div className="space-y-4">
-            {/* Full Name */}
-            <div className="relative">
-              <User className="absolute left-3 top-3 text-gray-400" size={18} />
-              <input {...register("full_name")} placeholder="Full Name" className="input pl-10" />
-              {errors.full_name && <p className="text-red-500 text-xs mt-1">{errors.full_name.message}</p>}
+          <>
+            <div className="flex justify-center">
+              <UserRoundPen className="text-blue-600" size={60} />
             </div>
 
-            {/* Phone */}
-            <div className="relative">
-              <Phone className="absolute left-3 top-3 text-gray-400" size={18} />
-              <input {...register("phone")} placeholder="Mobile Number" className="input pl-10" />
-              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
-            </div>
+            <h2 className="text-center text-lg font-bold">Account Details</h2>
 
-            {/* Email */}
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
-              <input {...register("email")} placeholder="Email Address" className="input pl-10" />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
-            </div>
+            <input {...register("full_name")} placeholder="Full Name"
+              className="w-full border p-3 rounded-lg" />
+            <p className="text-red-500 text-xs">{errors.full_name?.message}</p>
 
-            {/* Password */}
+            <input {...register("phone")} placeholder="Mobile Number"
+              className="w-full border p-3 rounded-lg" />
+            <p className="text-red-500 text-xs">{errors.phone?.message}</p>
+
+            <input {...register("email")} placeholder="Email"
+              className="w-full border p-3 rounded-lg" />
+            <p className="text-red-500 text-xs">{errors.email?.message}</p>
+
             <div className="relative">
-              <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
               <input
                 type={showPwd ? "text" : "password"}
                 {...register("password")}
                 placeholder="Password"
-                className="input px-10"
+                className="w-full border p-3 rounded-lg"
               />
               <button
                 type="button"
                 onClick={() => setShowPwd(!showPwd)}
-                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-3 text-sm"
               >
-                {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                👁️
               </button>
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
             </div>
+            <p className="text-red-500 text-xs">{errors.password?.message}</p>
 
-            {/* Confirm Password */}
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
-              <input
-                type="password"
-                {...register("confirmPassword")}
-                placeholder="Confirm Password"
-                className="input pl-10"
-              />
-              {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>}
-            </div>
-          </div>
+            <input
+              type="password"
+              {...register("confirmPassword")}
+              placeholder="Confirm Password"
+              className="w-full border p-3 rounded-lg"
+            />
+            <p className="text-red-500 text-xs">{errors.confirmPassword?.message}</p>
+          </>
         )}
 
-        {/* STEP 2: Education & Skills */}
+        {/* STEP 2 */}
         {step === 2 && (
-          <div className="space-y-4">
-            <input {...register("degree")} placeholder="Degree" className="input" />
-            <input {...register("university")} placeholder="University" className="input" />
+          <>
+            <div className="flex justify-center">
+              <GraduationCap className="text-blue-600" size={60} />
+            </div>
+
+            <h2 className="text-center text-lg font-bold">Education</h2>
+
+            <input {...register("degree")} placeholder="Degree"
+              className="w-full border p-3 rounded-lg" />
+            <p className="text-red-500 text-xs">{errors.degree?.message}</p>
+
+            <input {...register("university")} placeholder="University"
+              className="w-full border p-3 rounded-lg" />
+            <p className="text-red-500 text-xs">{errors.university?.message}</p>
+
             <input
               type="number"
               {...register("graduation_year", { valueAsNumber: true })}
               placeholder="Graduation Year"
-              className="input"
+              className="w-full border p-3 rounded-lg"
             />
-            <textarea
-              {...register("skills")}
-              placeholder="Skills (Comma separated)"
-              className="input min-h-[100px]"
-            />
-          </div>
+            <p className="text-red-500 text-xs">{errors.graduation_year?.message}</p>
+          </>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 pt-4">
+        {/* STEP 3 */}
+        {step === 3 && (
+          <>
+            <div className="flex justify-center">
+              <BriefcaseBusiness className="text-green-600" size={60} />
+            </div>
+
+            <h2 className="text-center text-lg font-bold">Job Preferences</h2>
+
+            <select {...register("work_type")}
+              className="w-full border p-3 rounded-lg">
+              <option value="">Select Work Type</option>
+              <option value="Remote">Remote</option>
+              <option value="Onsite">Onsite</option>
+              <option value="Hybrid">Hybrid</option>
+            </select>
+            <p className="text-red-500 text-xs">{errors.work_type?.message}</p>
+
+            <input
+              type="number"
+              {...register("expected_salary", { valueAsNumber: true })}
+              placeholder="Expected Salary"
+              className="w-full border p-3 rounded-lg"
+            />
+            <p className="text-red-500 text-xs">{errors.expected_salary?.message}</p>
+
+            <textarea
+              {...register("skills")}
+              placeholder="Skills (React, Django, SQL)"
+              className="w-full border p-3 rounded-lg"
+            />
+            <p className="text-red-500 text-xs">{errors.skills?.message}</p>
+
+            <input
+              type="file"
+              accept=".pdf"
+              {...register("resume")}
+              className="w-full border p-3 rounded-lg"
+            />
+            <p className="text-red-500 text-xs">{errors.resume?.message}</p>
+          </>
+        )}
+
+        {/* Buttons */}
+        <div className="flex gap-3">
           {step > 1 && (
-            <button type="button" onClick={back} className="w-1/2 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+            <button
+              type="button"
+              onClick={prevStep}
+              className="flex-1 border p-3 rounded-lg"
+            >
               Back
             </button>
           )}
 
-          <button 
-            type="button" 
-            onClick={step < 2 ? next : handleSubmit(onSubmit)} 
-            className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow-md shadow-blue-200"
-          >
-            {step < 2 ? "Continue" : "Create Account"}
-          </button>
+          {step < 3 ? (
+            <button
+              type="button"
+              onClick={nextStep}
+              className="flex-1 bg-blue-600 text-white p-3 rounded-lg"
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="flex-1 bg-blue-600 text-white p-3 rounded-lg"
+            >
+              Register
+            </button>
+          )}
         </div>
       </form>
     </div>
+  </>
   );
 }

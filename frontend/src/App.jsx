@@ -8,6 +8,8 @@ import ApplyPage from './components/ApplyPage';
 import HomePage from './components/HomePage';
 import CompanyPage from './pages/CompanyPage';
 import JobPage from './pages/JobPage';
+import MyApplications from './components/MyApplications';
+import ApplicationDetail  from './components/ApplicationDetail';
 function App() {
  
   return (
@@ -25,6 +27,11 @@ function App() {
        <ProtectedRoute>
         <ApplyPage />
       </ProtectedRoute>}/>
+      <Route path="/application" element={<ProtectedRoute>
+    <MyApplications /></ProtectedRoute> } />
+     <Route path="/application/:id" element={ <ProtectedRoute>
+   <ApplicationDetail /> </ProtectedRoute>} />
+
     </Routes>
   </BrowserRouter>   
 )

@@ -131,7 +131,7 @@ export default function Login() {
                                 type="text" 
                                 name="username" 
                                 required
-                                placeholder="Username" 
+                                placeholder="Email" 
                                 className="w-full rounded-md border border-gray-300 px-4 py-2.5 focus:border-blue-600 focus:ring-1 focus:ring-blue-200 outline-none transition" 
                             />
                         </div>
