@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -31,3 +30,24 @@ class Application(models.Model):
     status=models.CharField(max_length=20,choices=STATUS_CHOICE, default='pending')
     applied_on=models.DateTimeField(auto_now_add=True)
 
+class Profile(models.Model):
+    WORK_TYPE_CHOICES = [
+        ('Remote', 'Remote'),
+        ('Onsite', 'Onsite'),
+        ('Hybrid', 'Hybrid'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone = models.CharField(max_length=15)
+
+    degree = models.CharField(max_length=50)
+    university = models.CharField(max_length=150)
+    graduation_year = models.IntegerField()
+
+    work_type = models.CharField(max_length=20, choices=WORK_TYPE_CHOICES)
+    expected_salary = models.IntegerField()
+    skills = models.TextField()
+    resume = models.FileField(upload_to='resumes/',null=True,blank=True)
+
+    def __str__(self):
+        return self.user.username

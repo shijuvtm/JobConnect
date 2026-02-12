@@ -7,6 +7,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import parser_classes
 from .models import Application, Job
 
 from .serializers import ApplicationSerializer, JobsSerializer, RegisterSerializer
@@ -18,6 +20,7 @@ def hello_api(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@parser_classes([MultiPartParser, FormParser])
 def register_user(request):
     serializer = RegisterSerializer(data=request.data)   
     if serializer.is_valid():
