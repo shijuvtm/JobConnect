@@ -10,6 +10,11 @@ import CompanyPage from './pages/CompanyPage';
 import JobPage from './pages/JobPage';
 import MyApplications from './components/MyApplications';
 import ApplicationDetail  from './components/ApplicationDetail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import ServicesPage from './pages/ServicesPage';
+
+
 function App() {
  
   return (
@@ -20,6 +25,9 @@ function App() {
        <Route path='/company' element={<CompanyPage/>}/>
        <Route path='/register' element={<Register/>}/>
        <Route path='/login' element={<Login/>}/>
+       <Route path='/forgot-password' element={<ForgotPassword />} />
+       <Route path='/reset-password/:token' element={<ResetPassword />} />
+      <Route path='/services' element={<ServicesPage/>}/>
        <Route path='/jobs' element={<ProtectedRoute>
       <JobListPage />
        </ProtectedRoute> }/>

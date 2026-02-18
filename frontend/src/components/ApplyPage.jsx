@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Menu, X, ArrowLeft, CheckCircle } from "lucide-react";
 import { useActionState } from "react";
 import { NavLink, useParams, useNavigate } from "react-router-dom";
+import { API_URL } from '../config';
 
 export default function ApplyPage() {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ export default function ApplyPage() {
       return { message: "Please login again", success: false };
     }
 
-    const res = await fetch("http://127.0.0.1:8000/apply", {
+    const res = await fetch(`${API_URL}/apply`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

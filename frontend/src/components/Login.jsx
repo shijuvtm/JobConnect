@@ -1,12 +1,13 @@
 import React, { useState , useEffect} from 'react';
 import { useActionState } from 'react';
 import { NavLink,useNavigate } from "react-router-dom";
+import { API_URL } from '../config';
 
 async function loginAction(prevState, formData) {
   try {
     const json = Object.fromEntries(formData);
 
-    const res = await fetch("http://127.0.0.1:8000/login", {
+    const res = await fetch(`${API_URL}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -64,7 +65,7 @@ export default function Login() {
                     <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-700">
                         <NavLink to="/job" className="hover:text-blue-700">Jobs</NavLink>
                         <NavLink to="/company" className="hover:text-blue-700">Companies</NavLink>
-                        <a href="#" className="hover:text-blue-700">Services</a>
+                        <NavLink to="/services" className="hover:text-blue-700">Services</NavLink>
                         <NavLink to="/register" className="hover:text-blue-700 font-bold">Register</NavLink>
                     </nav>
 
@@ -88,7 +89,7 @@ export default function Login() {
                     <div className="md:hidden bg-white border-t px-6 py-4 space-y-4 shadow-lg">
                         <NavLink to="/job" className="block text-gray-700 hover:text-blue-700">Jobs</NavLink>
                         <NavLink to="/company" className="block text-gray-700 hover:text-blue-700">Companies</NavLink>
-                        <a href="#" className="block text-gray-700 hover:text-blue-700">Services</a>
+                        <NavLink to="/services" className="block text-gray-700 hover:text-blue-700">Services</NavLink>
                         <NavLink to="/register" className="block text-blue-700 font-bold">Register</NavLink>
                     </div>
                 )}
@@ -150,9 +151,9 @@ export default function Login() {
                         </div>
 
                         <div className="text-right">
-                            <a href="#" className="text-sm text-blue-700 hover:underline">
+                            <NavLink to="/forgot-password" className="text-sm text-blue-700 hover:underline">
                                 Forgot Password?
-                            </a>
+                            </NavLink>
                         </div>
 
                         <button 

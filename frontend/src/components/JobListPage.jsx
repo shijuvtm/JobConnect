@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink,useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
+
 export default function JobListPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [jobs, setJobs] = useState([]);
@@ -16,7 +18,7 @@ export default function JobListPage() {
 
     setIsLoading(true);
 
-    fetch("http://127.0.0.1:8000/jobs", {
+    fetch(`${API_URL}/jobs`, {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",

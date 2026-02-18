@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate,NavLink } from "react-router-dom";
 import axios from "axios";
+import { API_URL } from '../config';
 
 const ApplicationDetail = () => {
   const { id } = useParams();
@@ -15,7 +16,7 @@ const ApplicationDetail = () => {
       const token = localStorage.getItem("access");
       try {
         setLoading(true);
-        const res = await axios.get(`http://127.0.0.1:8000/my-application/${id}/`, {
+        const res = await axios.get(`${API_URL}/my-application/${id}/`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         setApp(res.data);

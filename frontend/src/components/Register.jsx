@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema } from "../schemas/registerSchema";
 import { UserRoundPen, BriefcaseBusiness, GraduationCap } from "lucide-react";
+import { API_URL } from '../config';
+
 export default function Register() {
   const [step, setStep] = useState(1);
   const [showPwd, setShowPwd] = useState(false);
@@ -54,7 +56,7 @@ export default function Register() {
   }
 
   try {
-    const res = await fetch("http://127.0.0.1:8000/register", {
+    const res = await fetch(`${API_URL}/register`, {
       method: "POST",
       body: formData,   // 🚀 DO NOT set headers
     });
