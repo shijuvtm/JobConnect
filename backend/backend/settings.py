@@ -104,6 +104,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get("email")
+EMAIL_HOST_PASSWORD = os.environ.get("password")
+
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
       # Add these at the top of your settings.py

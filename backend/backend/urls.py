@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import hello_api,register_user,jwt_login,job_list,apply_job,applyed_list,application_detail
+from .views import hello_api,register_user,jwt_login,job_list,apply_job,applyed_list,application_detail,forgot_password,reset_password
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("hello/",hello_api),
@@ -27,7 +27,9 @@ urlpatterns = [
     path("jobs",job_list),
     path("apply",apply_job),
     path("my-application/",applyed_list),
-    path('my-application/<int:pk>/',application_detail)
+    path('my-application/<int:pk>/',application_detail),
+    path('forgot-password/', forgot_password),
+    path('reset-password/<str:token>/', reset_password)
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
