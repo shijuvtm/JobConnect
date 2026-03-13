@@ -77,10 +77,11 @@ export default function Register() {
 };   
     
   return (
-   <><header className="bg-white border-b sticky top-0 z-50">
+   <>
+    <header className="bg-white border-b sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                     <div className="text-2xl font-bold text-blue-700">
-                        JobConnect
+                       <NavLink to="/"> JobConnect</NavLink>
                     </div>
 
                     {/* Desktop Nav */}
@@ -116,6 +117,7 @@ export default function Register() {
                     </div>
                 )}
             </header>
+
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <form
         onSubmit={handleSubmit(onSubmit)}

@@ -30,7 +30,7 @@ async function loginAction(prevState, formData) {
     localStorage.setItem("refresh", data.refresh);
     localStorage.setItem("userId", data.user.id);
     localStorage.setItem("username", data.user.username);
-
+    localStorage.setItem("email",data.user.email);
     return "Login successful";
   } catch (error) {
     return "Login failed: Server unreachable";
@@ -58,7 +58,7 @@ export default function Login() {
             <header className="bg-white border-b sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                     <div className="text-2xl font-bold text-blue-700">
-                        JobConnect
+                       <NavLink to="/"> JobConnect</NavLink>
                     </div>
 
                     {/* Desktop Nav */}
@@ -126,11 +126,11 @@ export default function Login() {
                     <form action={formAction} className="mt-8 space-y-5">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Username
+                                Email
                             </label>
                             <input 
                                 type="text" 
-                                name="username" 
+                                name="email" 
                                 required
                                 placeholder="Email" 
                                 className="w-full rounded-md border border-gray-300 px-4 py-2.5 focus:border-blue-600 focus:ring-1 focus:ring-blue-200 outline-none transition" 
