@@ -83,19 +83,46 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      {/* Navbar */}
-      <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <NavLink to="/" className="text-2xl font-bold text-blue-700 tracking-tight">JobConnect</NavLink>
-          <nav className="hidden md:flex gap-8 font-semibold text-sm text-slate-600">
-            <NavLink to="/job" className="hover:text-blue-700">Jobs</NavLink>
-            <NavLink to="/login" className="px-5 py-2 bg-blue-50 text-blue-700 rounded-full">Login</NavLink>
-          </nav>
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 text-slate-600">
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-      </header>
+             
+            <header className="bg-white border-b sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                    <div className="text-2xl font-bold text-blue-700">
+                       <NavLink to="/"> JobConnect</NavLink>
+                    </div>
+
+                    {/* Desktop Nav */}
+                    <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-700">
+                        <NavLink to="/job" className="hover:text-blue-700">Jobs</NavLink>
+                        <NavLink to="/company" className="hover:text-blue-700">Companies</NavLink>
+                        <NavLink to="/services" className="hover:text-blue-700">Services</NavLink>
+                        <NavLink to="/login" className="hover:text-blue-700 font-bold">Login</NavLink>
+                    </nav>
+
+                    {/* Mobile Hamburger Button */}
+                    <button
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        className="md:hidden p-2 rounded-md focus:bg-gray-100 outline-none"
+                    >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {isMenuOpen ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                            )}
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Mobile Menu Dropdown */}
+                {isMenuOpen && (
+                    <div className="md:hidden bg-white border-t px-6 py-4 space-y-4 shadow-lg">
+                        <NavLink to="/job" className="block text-gray-700 hover:text-blue-700">Jobs</NavLink>
+                        <NavLink to="/company" className="block text-gray-700 hover:text-blue-700">Companies</NavLink>
+                        <NavLink to="/services" className="block text-gray-700 hover:text-blue-700">Services</NavLink>
+                        <NavLink to="/login" className="block text-blue-700 font-bold">Login</NavLink>
+                    </div>
+                )}
+            </header>      
 
       <div className="flex flex-col items-center justify-center px-6 py-12">
         {/* Progress Indicator */}
