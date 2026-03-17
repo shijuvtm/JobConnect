@@ -16,7 +16,7 @@ class RegisterSerializer(serializers.Serializer):
     work_type = serializers.CharField()
     expected_salary = serializers.IntegerField()
     skills = serializers.CharField()
-    resume = serializers.FileField(required=False)
+    resume = serializers.FileField(required=True)
    
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
@@ -35,6 +35,8 @@ class RegisterSerializer(serializers.Serializer):
     def validate_phone(self, value):
         if not value.isdigit() or len(value) < 10:
             raise serializers.ValidationError("Enter a valid phone number")
+        if Profile.objects.filter(phone=value).exists():
+            raise serializers.ValidationError("This phone number is already registered")
         return value
 
     
@@ -43,15 +45,21 @@ class RegisterSerializer(serializers.Serializer):
         if value < 1990 or value > current_year + 1:
             raise serializers.ValidationError("Enter a valid graduation year")
         return value
+    def validate_resume(self, value):
+        if not value.name.endswith('.pdf'):
+            raise serializers.ValidationError("Only PDF files are allowed")
+        return value
+
 
     def create(self, validated_data):
         resume = validated_data.pop('resume',None)
+        full_name = validated_data['full_name']
         name_parts = validated_data['full_name'].split(" ", 1)
         first_name = name_parts[0]
         last_name = name_parts[1] if len(name_parts) > 1 else ""
 
         user = User.objects.create_user(
-            username=validated_data['full_name'],
+            username=full_name,
             email=validated_data['email'],
             password=validated_data['password'],
             first_name=first_name,

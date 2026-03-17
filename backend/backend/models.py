@@ -47,7 +47,7 @@ class Profile(models.Model):
     work_type = models.CharField(max_length=20, choices=WORK_TYPE_CHOICES)
     expected_salary = models.IntegerField()
     skills = models.TextField()
-    resume = models.FileField(upload_to='resumes/',null=True,blank=True)
+    resume = models.FileField(upload_to='resumes/')
 
     def __str__(self):
         return self.user.username
