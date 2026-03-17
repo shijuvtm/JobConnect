@@ -86,7 +86,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "https://job-connect-black-ten.vercel.app",
 ]
-
+CORS_ALLOW_ALL_ORIGINS = True
 ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
