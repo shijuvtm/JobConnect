@@ -68,7 +68,7 @@ export default function JobListPage() {
     job.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const fullResumeUrl = profile?.resume ? `http://127.0.0.1:8000${profile.resume}` : null;
+  const fullResumeUrl = profile?.resume ? `https://jobconnect-1ofu.onrender.com/${profile.resume}` : null;
 
   const handleUpload = async () => {
     const token = localStorage.getItem("access");
