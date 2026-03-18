@@ -89,7 +89,7 @@ def forgot_password(request):
 
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
-    reset_link = f"http://localhost:5173/reset-password/{token}/"
+    reset_link = f"https://jobconnect-1ofu.onrender.com/reset-password/{token}/"
 
     send_mail(
         "Password Reset",
