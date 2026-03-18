@@ -35,12 +35,18 @@ DEBUG = os.getenv("DEBUG") == "True"
 
 ALLOWED_HOSTS = [
     "jobconnect-1ofu.onrender.com",
-    "job-connect-black-ten.vercel.app",
-    "job-connect-lilac.vercel.app", 
+    ".vercel.app",
     "localhost",
     "127.0.0.1",
 ]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+]
 
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.vercel.app",
+]
 # Application definition
 
 INSTALLED_APPS = [
@@ -89,13 +95,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "https://job-connect-black-ten.vercel.app",
-]
-CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = [
-    "https://job-connect-black-ten.vercel.app",
-]
+
 ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
