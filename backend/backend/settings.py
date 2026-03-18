@@ -36,6 +36,7 @@ DEBUG = os.getenv("DEBUG") == "True"
 ALLOWED_HOSTS = [
     "jobconnect-1ofu.onrender.com",
     "job-connect-black-ten.vercel.app",
+    "job-connect-lilac.vercel.app", 
     "localhost",
     "127.0.0.1",
 ]
