@@ -13,7 +13,8 @@ from .models import Application, Job,Profile
 import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
-from django.core.mail import send_mail
+#from django.core.mail import send_mail
+from .utils import send_brevo_email
 from .serializers import ApplicationSerializer, JobsSerializer, RegisterSerializer
 
 @api_view(['GET'])
@@ -89,20 +90,39 @@ def forgot_password(request):
 
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
-    reset_link = f"https://jobconnect-1ofu.onrender.com/reset-password/{token}/"
+    # Update this to your ACTUAL Vercel frontend URL
+    reset_link = f"https://jobconnect-frontend.vercel.app/reset-password/{token}/"
 
-    send_mail(
-        "Password Reset",
-        f"Click the link to reset your password:\n{reset_link}",
-        settings.EMAIL_HOST_USER,
-        [email],
-        fail_silently=False,
+    email_body = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <h3 style="color: #333;">Password Reset Request</h3>
+            <p>Hi {user.username},</p>
+            <p>Click the button below to reset your password. This link will expire in 10 minutes.</p>
+            <div style="margin: 20px 0;">
+                <a href="{reset_link}" style="padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                    Reset Password
+                </a>
+            </div>
+            <p>If you didn't request this, please ignore this email.</p>
+            <hr style="border: none; border-top: 1px solid #eee;">
+            <p style="font-size: 12px; color: #777;">JobConnect - Palakkad, Kerala</p>
+        </body>
+    </html>
+    """
+
+    # Calling the function from utils.py
+    email_sent = send_brevo_email(
+        subject="Reset Your JobConnect Password",
+        html_content=email_body,
+        to_email=email
     )
 
-    return Response(
-        {"message": "Password reset link sent to email"},
-        status=status.HTTP_200_OK
-    )
+    if email_sent:
+        return Response({"message": "Password reset link sent to email"}, status=status.HTTP_200_OK)
+    else:
+        # Check your Render logs if this triggers—it usually means the API key is missing
+        return Response({"error": "Failed to send email via Brevo"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
