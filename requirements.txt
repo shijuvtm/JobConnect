@@ -5,4 +5,6 @@ psycopg2-binary
 python-dotenv==1.0.1
 tzdata
 django-cors-headers
+sib-api-v3-sdk
 gunicorn
+
