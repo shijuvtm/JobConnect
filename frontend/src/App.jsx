@@ -13,7 +13,7 @@ import ApplicationDetail  from './components/ApplicationDetail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import ServicesPage from './pages/ServicesPage';
-
+import ServicesPageO from './components/ServicesPageO';
 
 function App() {
  
@@ -39,6 +39,10 @@ function App() {
     <MyApplications /></ProtectedRoute> } />
      <Route path="/application/:id" element={ <ProtectedRoute>
    <ApplicationDetail /> </ProtectedRoute>} />
+       <Route path="/services1" element={ <ProtectedRoute>
+       <ServicesPageO />
+       </ProtectedRoute> } />
+        
 
     </Routes>
   </BrowserRouter>   
