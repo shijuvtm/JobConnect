@@ -32,6 +32,10 @@ urlpatterns = [
     path('reset-password/<str:token>/', reset_password),
     path('my-profile',my_profile),
     path('update-resume',update_resume),
+    path("api/resume-check/", views.resume_checker),
+    path("api/mock-interview/", views.mock_interview),
+    path("api/skill-gap/", views.skill_gap),
+    path("api/build-resume/", views.resume_builder),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
