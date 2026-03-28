@@ -19,6 +19,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import hello_api,register_user,jwt_login,job_list,apply_job,applyed_list,application_detail,forgot_password,reset_password,my_profile,update_resume
+from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("hello/",hello_api),
