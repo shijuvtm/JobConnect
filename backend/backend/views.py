@@ -13,6 +13,10 @@ from .models import Application, Job,Profile
 import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from .services.ai_service import generate_ai_response
 #from django.core.mail import send_mail
 from .utils import send_brevo_email
 from .serializers import ApplicationSerializer, JobsSerializer, RegisterSerializer
@@ -280,3 +284,66 @@ def update_resume(request):
             {"error": "Profile not found"},
             status=status.HTTP_404_NOT_FOUND
         )
+
+@csrf_exempt
+def resume_checker(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        resume_text = data.get("resume")
+
+        prompt = f"""
+        Analyze this resume:
+        {resume_text}
+
+        Give:
+        - Score out of 100
+        - Missing keywords
+        - Improvements
+        """
+
+        result = generate_ai_response(prompt)
+        return JsonResponse({"result": result})
+
+@csrf_exempt
+def mock_interview(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        role = data.get("role")
+
+        prompt = f"Ask 5 interview questions for a {role} role."
+
+        result = generate_ai_response(prompt)
+        return JsonResponse({"questions": result})
+
+@csrf_exempt
+def skill_gap(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        skills = data.get("skills")
+        job = data.get("job")
+
+        prompt = f"""
+        My skills: {skills}
+        Target job: {job}
+
+        Find:
+        - Missing skills
+        - Learning roadmap
+        """
+
+        result = generate_ai_response(prompt)
+        return JsonResponse({"analysis": result})
+
+@csrf_exempt
+def resume_builder(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        details = data.get("details")
+
+        prompt = f"""
+        Create a professional resume using:
+        {details}
+        """
+
+        result = generate_ai_response(prompt)
+        return JsonResponse({"resume": result})
