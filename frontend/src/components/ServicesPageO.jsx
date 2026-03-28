@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import axios from "axios";
 import { Cpu, BarChart3, FileText, Sparkles, Rocket } from 'lucide-react';
+import { API_URL } from '../config';
 
 export default function ServicesPageO() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -19,7 +20,7 @@ export default function ServicesPageO() {
     setResult("");
 
     try {
-      const res = await axios.post("http://127.0.0.1:8000/api/resume-check/", {
+      const res = await axios.post(`${API_URL}/api/resume-check/`, {
         resume: "I am a MERN stack developer with Node.js, React, MongoDB experience"
       });
 
@@ -36,7 +37,7 @@ export default function ServicesPageO() {
     setResult("");
 
     try {
-      const res = await axios.post("http://127.0.0.1:8000/api/mock-interview/", {
+      const res = await axios.post(`${API_URL}/api/mock-interview/`, {
         role: "Software Developer"
       });
 
@@ -53,7 +54,7 @@ export default function ServicesPageO() {
     setResult("");
 
     try {
-      const res = await axios.post("http://127.0.0.1:8000/api/skill-gap/", {
+      const res = await axios.post(`${API_URL}/api/skill-gap/`, {
         skills: "React, Node.js, MongoDB",
         job: "Full Stack Developer"
       });
@@ -71,7 +72,7 @@ export default function ServicesPageO() {
     setResult("");
 
     try {
-      const res = await axios.post("http://127.0.0.1:8000/api/build-resume/", {
+      const res = await axios.post(`${API_URL}/api/build-resume/`, {
         details: "Name: Shiju, Skills: MERN Stack, Experience: Fresher"
       });
 
@@ -95,9 +96,9 @@ export default function ServicesPageO() {
           </div>
 
           <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-700">
-            <NavLink to="/job">Jobs</NavLink>
+            <NavLink to="/jobs">Jobs</NavLink>
             <NavLink to="/services1">Services</NavLink>
-            <NavLink to="/Application">APPLICATION</NavLink>
+            <NavLink to="/application">APPLICATION</NavLink>
           </nav>
 
           <button
@@ -110,9 +111,9 @@ export default function ServicesPageO() {
 
         {isMenuOpen && (
           <div className="md:hidden px-6 py-4 space-y-4">
-            <NavLink to="/job">Jobs</NavLink>
+            <NavLink to="/jobs">Jobs</NavLink>
             <NavLink to="/services1">Services</NavLink>
-            <NavLink to="/Application">Application</NavLink>
+            <NavLink to="/application">Application</NavLink>
           </div>
         )}
       </header>
