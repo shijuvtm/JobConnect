@@ -52,39 +52,39 @@ class RegisterSerializer(serializers.Serializer):
 
 
     def create(self, validated_data):
-    try:
-        print("STEP 1")
-        resume = validated_data.pop('resume', None)
-
-        print("STEP 2")
-        full_name = validated_data['full_name']
-
-        print("STEP 3")
-        user = User.objects.create_user(
-            username=validated_data['email'],
-            email=validated_data['email'],
-            password=validated_data['password'],
-        )
-
-        print("STEP 4")
-        Profile.objects.create(
-            user=user,
-            phone=validated_data['phone'],
-            degree=validated_data['degree'],
-            university=validated_data['university'],
-            graduation_year=validated_data['graduation_year'],
-            work_type=validated_data['work_type'],
-            expected_salary=validated_data['expected_salary'],
-            skills=validated_data['skills'],
-            resume=resume,
-        )
-
-        print("STEP 5")
-        return user
-
-    except Exception as e:
-        print("ERROR:", str(e))
-        raise
+        try:
+            print("STEP 1")
+            resume = validated_data.pop('resume', None)
+    
+            print("STEP 2")
+            full_name = validated_data['full_name']
+    
+            print("STEP 3")
+            user = User.objects.create_user(
+                username=validated_data['email'],
+                email=validated_data['email'],
+                password=validated_data['password'],
+            )
+    
+            print("STEP 4")
+            Profile.objects.create(
+                user=user,
+                phone=validated_data['phone'],
+                degree=validated_data['degree'],
+                university=validated_data['university'],
+                graduation_year=validated_data['graduation_year'],
+                work_type=validated_data['work_type'],
+                expected_salary=validated_data['expected_salary'],
+                skills=validated_data['skills'],
+                resume=resume,
+            )
+    
+            print("STEP 5")
+            return user
+    
+        except Exception as e:
+            print("ERROR:", str(e))
+            raise
 class JobsSerializer(serializers.ModelSerializer):
     created_by=serializers.StringRelatedField()
     
