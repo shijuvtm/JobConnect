@@ -69,7 +69,7 @@ export default function JobListPage() {
   );
 
   const fullResumeUrl = profile?.resume ? `https://jobconnect-1ofu.onrender.com/${profile.resume}` : null;
-
+  console.log(fullResumeUrl);
   const handleUpload = async () => {
     const token = localStorage.getItem("access");
     if (!file) return alert("Please select a file first");
