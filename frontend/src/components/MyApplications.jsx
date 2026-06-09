@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { NavLink } from "react-router-dom";
+import { API_URL } from '../config';
 
 const MyApplications = () => {
   const [applications, setApplications] = useState([]);
@@ -16,7 +17,7 @@ const MyApplications = () => {
     }
 
     setLoading(true);
-    axios.get("http://127.0.0.1:8000/my-application/", {
+    axios.get(`{API_URI}/my-application/`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
     .then(res => setApplications(res.data))
