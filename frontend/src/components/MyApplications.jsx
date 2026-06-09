@@ -17,7 +17,7 @@ const MyApplications = () => {
     }
 
     setLoading(true);
-    axios.get(`{API_URI}/my-application/`, {
+    axios.get(`{API_URL}/my-application/`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
     .then(res => setApplications(res.data))
