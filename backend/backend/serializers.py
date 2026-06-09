@@ -52,20 +52,21 @@ class RegisterSerializer(serializers.Serializer):
 
 
     def create(self, validated_data):
-        resume = validated_data.pop('resume',None)
-        full_name = validated_data['full_name']
-        name_parts = validated_data['full_name'].split(" ", 1)
-        first_name = name_parts[0]
-        last_name = name_parts[1] if len(name_parts) > 1 else ""
+    try:
+        print("STEP 1")
+        resume = validated_data.pop('resume', None)
 
+        print("STEP 2")
+        full_name = validated_data['full_name']
+
+        print("STEP 3")
         user = User.objects.create_user(
-            username=full_name,
+            username=validated_data['email'],
             email=validated_data['email'],
             password=validated_data['password'],
-            first_name=first_name,
-            last_name=last_name,
         )
 
+        print("STEP 4")
         Profile.objects.create(
             user=user,
             phone=validated_data['phone'],
@@ -75,10 +76,15 @@ class RegisterSerializer(serializers.Serializer):
             work_type=validated_data['work_type'],
             expected_salary=validated_data['expected_salary'],
             skills=validated_data['skills'],
-            resume=resume
+            resume=resume,
         )
 
-        return user        
+        print("STEP 5")
+        return user
+
+    except Exception as e:
+        print("ERROR:", str(e))
+        raise
 class JobsSerializer(serializers.ModelSerializer):
     created_by=serializers.StringRelatedField()
     
