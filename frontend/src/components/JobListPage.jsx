@@ -187,9 +187,25 @@ export default function JobListPage() {
                     <p className="text-xs font-medium text-blue-600 mb-1">Previewing New Upload:</p>
                     <Document file={file}><Page pageNumber={1} width={250} /></Document>
                  </div>
-               ) : fullResumeUrl ? (
-                 <iframe src={fullResumeUrl} className="w-full h-48 rounded-lg border shadow-inner" title="Resume" />
-               ) : (
+                ) : fullResumeUrl ? (
+                      <div className="border rounded-lg overflow-hidden bg-gray-50 p-2">
+                        <Document
+                          file={fullResumeUrl}
+                          onLoadError={(error) => console.error("PDF Error:", error)}
+                        >
+                          <Page pageNumber={1} width={250} />
+                        </Document>
+                    
+                        <a
+                          href={fullResumeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block mt-2 text-center text-blue-600 text-sm"
+                        >
+                          Open Full Resume
+                        </a>
+                      </div>
+                    ) : (
                  <div className="h-48 flex items-center justify-center border-2 border-dashed rounded-lg text-gray-400 text-xs">No resume found</div>
                )}
             </div>
