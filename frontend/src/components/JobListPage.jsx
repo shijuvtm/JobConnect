@@ -102,7 +102,7 @@ export default function JobListPage() {
     {/* Desktop Nav */}
     <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-700">
       <NavLink to="/jobs" className="hover:text-blue-700 transition">Jobs</NavLink>
-      <NavLink to="/services1" className="hover:text-blue-700 transition">Services</NavLink>
+      <NavLink to="/services" className="hover:text-blue-700 transition">Services</NavLink>
       <NavLink to="/application" className="hover:text-blue-700 transition">My Applications</NavLink>
       <button onClick={() => { localStorage.clear(); navigate("/login"); }} className="hover:text-blue-700 transition">Logout</button>
     </nav>
@@ -145,7 +145,7 @@ export default function JobListPage() {
           Jobs
         </NavLink>
         <NavLink
-          to="/services1"
+          to="/services"
           onClick={() => setIsMenuOpen(false)}
           className="text-base font-semibold text-gray-700 hover:text-blue-700 py-2 border-b border-gray-50"
         >

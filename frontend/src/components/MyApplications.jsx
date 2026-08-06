@@ -17,12 +17,12 @@ const MyApplications = () => {
     }
 
     setLoading(true);
-    axios.get(`{API_URL}/my-application/`, {
+    axios.get(`${API_URL}/my-application/`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
-    .then(res => setApplications(res.data))
-    .catch(err => console.error(err))
-    .finally(() => setLoading(false));
+      .then(res => setApplications(res.data))
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false));
   }, []);
 
   const getStatusStyles = (status) => {
@@ -44,7 +44,7 @@ const MyApplications = () => {
             <NavLink to="/jobs" className="hover:text-blue-700 transition px-6">Jobs</NavLink>
             <NavLink to="/services" className="hover:text-blue-700 transition px-6">Services</NavLink>
             <NavLink to="/application" className="hover:text-blue-700 transition px-6">My Applications</NavLink>
-            <NavLink to="/login" onClick={() => { localStorage.clear();}} className="hover:text-blue-700 transition px-6">Logout</NavLink>
+            <NavLink to="/login" onClick={() => { localStorage.clear(); }} className="hover:text-blue-700 transition px-6">Logout</NavLink>
           </nav>
 
           <div className="flex items-center gap-4">
@@ -72,7 +72,7 @@ const MyApplications = () => {
             <NavLink to="/jobs" className="block text-sm font-medium text-gray-700 hover:text-blue-700">Jobs</NavLink>
             <NavLink to="/services" className="block text-sm font-medium text-gray-700 hover:text-blue-700">Services</NavLink>
             <NavLink to="/application" className="block text-sm font-medium text-gray-700 hover:text-blue-700">My Applications</NavLink>
-            <NavLink to="/login" onClick={() => { localStorage.clear();}} className="block text-sm font-medium text-gray-700 hover:text-blue-700">Logout</NavLink>
+            <NavLink to="/login" onClick={() => { localStorage.clear(); }} className="block text-sm font-medium text-gray-700 hover:text-blue-700">Logout</NavLink>
           </nav>
         )}
       </header>
@@ -118,9 +118,9 @@ const MyApplications = () => {
                   <small className="text-gray-400 italic">
                     Applied on {new Date(app.applied_on).toLocaleDateString()}
                   </small>
-                  <NavLink  to={`/application/${app.id}`} className="text-blue-600 text-sm font-medium hover:underline">
-                   View Details
-                   </NavLink>
+                  <NavLink to={`/application/${app.id}`} className="text-blue-600 text-sm font-medium hover:underline">
+                    View Details
+                  </NavLink>
 
                 </div>
               </div>

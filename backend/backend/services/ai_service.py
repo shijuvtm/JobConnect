@@ -1,10 +1,39 @@
-import google.generativeai as genai
-from django.conf import settings
+import os
+import requests
+from dotenv import load_dotenv
 
-genai.configure(api_key=settings.GEMINI_API_KEY)
+load_dotenv()
 
-model = genai.GenerativeModel("gemini-pro")
+API_KEY = os.getenv("API_KEY")  
 
 def generate_ai_response(prompt):
-    response = model.generate_content(prompt)
-    return response.text
+    url = "https://api.groq.com/openai/v1/chat/completions"
+
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are an expert career assistant."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "temperature": 0.7,
+        "max_tokens": 1000
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
+
+    except requests.exceptions.RequestException as e:
+        return f"Error: {e}"

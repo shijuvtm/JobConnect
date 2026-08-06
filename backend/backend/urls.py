@@ -37,6 +37,7 @@ urlpatterns = [
     path("api/mock-interview/", views.mock_interview),
     path("api/skill-gap/", views.skill_gap),
     path("api/build-resume/", views.resume_builder),
+    path("api/voice-interview/", views.voice_interview),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
