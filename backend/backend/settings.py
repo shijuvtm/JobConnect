@@ -33,21 +33,26 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "True"
 #google Ai studio api key
 GEMINI_API_KEY = os.getenv("API_KEY")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://job-connect-rho.vercel.app")
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
+    "job-connect-rho.vercel.app",
 ]
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://job-connect-rho.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://job-connect-rho.vercel.app",
 ]
 # Application definition
 
