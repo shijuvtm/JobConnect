@@ -33,26 +33,22 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "True"
 #google Ai studio api key
 GEMINI_API_KEY = os.getenv("API_KEY")
+ALLOWED_HOSTS = ["*"]
+
+# frontend URL default (still useful)
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://job-connect-rho.vercel.app")
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "job-connect-rho.vercel.app",
-]
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://job-connect-rho.vercel.app",
-]
-
+# Allow all CORS origins
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
+# CSRF_TRUSTED_ORIGINS must be explicit (Django does not support a wildcard here).
+# Keep the common ones you need; add others via the CSRF_TRUSTED_ORIGINS env var in production.
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://job-connect-rho.vercel.app",
+    "https://jobconnect-1ofu.onrender.com",
 ]
 # Application definition
 
