@@ -79,7 +79,7 @@ export default function JobPage() {
           {jobs.map((job) => (
             <div
               key={job.id}
-              className="group relative flex flex-col bg-white rounded-[32px] border border-slate-100 p-1.5 shadow-sm hover:shadow-2xl hover:shadow-blue-500/10 hover:border-blue-100 transition-all duration-500"
+              className="group relative flex flex-col bg-white rounded-[32px] border border-slate-100 p-1.5 shadow-sm hover:shadow-2xl hover:shadow-blue-500/10 hover:border-blue-100 transition-all duration-300"
             >
               <div className="p-7">
                 {/* Top Section: Role & Time */}
@@ -94,7 +94,7 @@ export default function JobPage() {
                   </span>
                 </div>
 
-                <h2 className="text-xl font-bold text-slate-900 group-hover:text-blue-700 transition-colors leading-snug">
+                <h2 className="text-xl font-bold text-slate-900 group-hover:text-blue-700 transition-colors duration-300 leading-snug">
                   {job.title}
                 </h2>
                 <p className="text-slate-400 font-semibold mt-1.5">{job.company}</p>
@@ -123,7 +123,7 @@ export default function JobPage() {
 
                 <NavLink
                   to="/register"
-                  className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-white text-slate-900 border border-slate-200 shadow-sm group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 group-hover:rotate-12 transition-all duration-300"
+                  className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-white text-slate-900 border border-slate-200 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300"
                 >
                   <ArrowRight size={22} />
                 </NavLink>
