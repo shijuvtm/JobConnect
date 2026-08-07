@@ -65,7 +65,7 @@ JobConnect
 ### Clone Repository
 
 ```bash
-git clone https://github.com/your-username/jobconnect.git
+git clone https://github.com/shijuvtm/JobConnect.git
 
 cd jobconnect
 ```
