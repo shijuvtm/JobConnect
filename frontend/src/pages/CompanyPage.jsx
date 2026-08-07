@@ -77,30 +77,30 @@ export default function CompanyPage() {
             <NavLink
               key={company.id}
               to="/login" 
-              className="group relative flex flex-col bg-white rounded-3xl p-7 border border-slate-200 hover:border-blue-500/30 transition-all duration-500 hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] overflow-hidden"
+              className="group relative flex flex-col bg-white rounded-3xl p-7 border border-slate-200 hover:border-blue-500/30 transition-all duration-500 hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]"
             >
               {/* Decorative background blur on hover */}
-              <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
               <div className="flex items-center justify-between mb-8 relative z-10">
-                <div className="w-14 h-14 flex items-center justify-center bg-slate-50 rounded-2xl text-slate-600 group-hover:bg-blue-600 group-hover:text-white group-hover:rotate-6 transition-all duration-300 shadow-sm">
+                <div className="w-14 h-14 flex items-center justify-center bg-slate-50 rounded-2xl text-slate-600 group-hover:bg-blue-600 group-hover:text-white group-hover:rotate-6 transition-all duration-300">
                   <Building2 size={28} />
                 </div>
-                <div className="p-2 rounded-full bg-slate-50 text-slate-300 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
+                <div className="p-2 rounded-full bg-slate-50 text-slate-300 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all duration-300">
                   <ArrowUpRight size={18} />
                 </div>
               </div>
 
               <div className="mb-6 relative z-10">
-                <h2 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-700 transition-colors">
+                <h2 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-700 transition-colors duration-300">
                   {company.title}
                 </h2>
-                <span className="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-tighter rounded-md group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors">
+                <span className="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-tighter rounded-md group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors duration-300">
                   {company.industry}
                 </span>
               </div>
 
-              <div className="mt-auto pt-5 border-t border-slate-100 flex items-center gap-2 text-slate-400 group-hover:text-slate-600 transition-colors">
+              <div className="mt-auto pt-5 border-t border-slate-100 flex items-center gap-2 text-slate-400 group-hover:text-slate-600 transition-colors duration-300">
                 <MapPin size={16} className="text-blue-500/60" />
                 <span className="text-sm font-semibold">{company.location}</span>
               </div>
