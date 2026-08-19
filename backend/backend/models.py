@@ -18,6 +18,7 @@ class Job(models.Model):
     salary_range=models.CharField(max_length=50, blank=True)
     posted_on=models.DateTimeField(auto_now_add=True)
     created_by=models.ForeignKey(User,on_delete=models.CASCADE)
+
 class Application(models.Model):
     STATUS_CHOICE = (
          ('pending','Pending'),
@@ -51,3 +52,20 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+class RecruiterProfile(models.Model):
+    """Profile model for recruiter users. Linked OneToOne with Django User."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=150)
+    mobile = models.CharField(max_length=15, null=True, blank=True)
+    company_name = models.CharField(max_length=200)
+    company_email = models.EmailField(null=True, blank=True)
+    employee_id = models.CharField(max_length=100, null=True, blank=True)
+    designation = models.CharField(max_length=150, null=True, blank=True)
+    linkedin = models.URLField(null=True, blank=True)
+    website = models.URLField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Recruiter: {self.user.username}"
