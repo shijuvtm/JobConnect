@@ -61,9 +61,9 @@ class RecruiterProfile(models.Model):
     mobile = models.CharField(max_length=15, null=True, blank=True)
     company_name = models.CharField(max_length=200)
     company_email = models.EmailField(null=True, blank=True)
-    employee_id = models.CharField(max_length=100, null=True, blank=True)
-    designation = models.CharField(max_length=150, null=True, blank=True)
-    linkedin = models.URLField(null=True, blank=True)
+    employee_id = models.CharField(max_length=100,blank=True)
+    designation = models.CharField(max_length=150,blank=True)
+    linkedin = models.URLField(blank=True)
     website = models.URLField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
