@@ -38,22 +38,25 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 # frontend URL default (still useful)
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://job-connect-rho.vercel.app")
 
+CORS_ALLOW_CREDENTIALS = True
+
+
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://jobconnect-1ofu.onrender.com",
+    "https://jobconnect-1ofu.onrender.com",  # ← Added this
+    "https://jobconnect-ga4f.onrender.com", 
     FRONTEND_URL,
 ]
-
-CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://jobconnect-1ofu.onrender.com",
+    "https://jobconnect-1ofu.onrender.com",  # ← Added this
+    "https://jobconnect-ga4f.onrender.com"
     FRONTEND_URL,
 ]
-
 # Application definition
 
 INSTALLED_APPS = [
