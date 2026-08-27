@@ -33,28 +33,30 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "True"
 #google Ai studio api key
 GEMINI_API_KEY = os.getenv("API_KEY")
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+
+# Explicit ALLOWED_HOSTS for production on Render and local development
+ALLOWED_HOSTS = [
+    "jobconnect-ga4f.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 # frontend URL default (still useful)
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://job-connect-rho.vercel.app")
 
 CORS_ALLOW_CREDENTIALS = True
 
-
-
+# Allow the Vercel frontend and local dev origins for CORS
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://jobconnect-1ofu.onrender.com",  # ← Added this
-    "https://jobconnect-ga4f.onrender.com", 
     FRONTEND_URL,
 ]
 
+# Trust the Vercel frontend and local dev origins for CSRF
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://jobconnect-1ofu.onrender.com",  # ← Added this
-    "https://jobconnect-ga4f.onrender.com", 
     FRONTEND_URL,
 ]
 # Application definition
