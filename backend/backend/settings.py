@@ -49,6 +49,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:5173",
     "https://job-connect-rho.vercel.app",
     "https://jobconnect-1ofu.onrender.com",
+    "https://jobconnect-ga4f.onrender.com", 
 ]
 # Application definition
 
