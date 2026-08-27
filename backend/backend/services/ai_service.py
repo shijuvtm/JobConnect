@@ -1,39 +1,55 @@
 import os
-import requests
+from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv()
 
-API_KEY = os.getenv("API_KEY")  
-
 def generate_ai_response(prompt):
-    url = "https://api.groq.com/openai/v1/chat/completions"
-
-    headers = {
-        "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json",
-    }
-
-    payload = {
-        "model": "llama-3.3-70b-versatile",
-        "messages": [
-            {
-                "role": "system",
-                "content": "You are an expert career assistant."
-            },
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
-        "temperature": 0.7,
-        "max_tokens": 1000
-    }
-
+    """
+    Generate AI response using Groq API.
+    
+    Args:
+        prompt (str): The user prompt/message
+        
+    Returns:
+        str: The AI-generated response or error message
+    """
     try:
-        response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"]
-
-    except requests.exceptions.RequestException as e:
-        return f"Error: {e}"
+        # Initialize Groq client with API key from environment
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            raise ValueError("GROQ_API_KEY environment variable is not set")
+        
+        client = Groq(api_key=api_key)
+        
+        # Call Groq API with supported model
+        message = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an expert career assistant."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+        
+        # Extract and return the response content
+        return message.choices[0].message.content
+    
+    except ValueError as ve:
+        # Handle missing environment variable
+        error_msg = f"Configuration Error: {str(ve)}"
+        print(f"[ERROR] {error_msg}")
+        return error_msg
+    
+    except Exception as e:
+        # Handle all other exceptions (API errors, network issues, etc.)
+        error_msg = f"AI Service Error: {type(e).__name__}: {str(e)}"
+        print(f"[ERROR] {error_msg}")
+        return error_msg
