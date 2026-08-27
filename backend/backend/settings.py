@@ -33,7 +33,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "True"
 #google Ai studio api key
 GEMINI_API_KEY = os.getenv("API_KEY")
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # frontend URL default (still useful)
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://job-connect-rho.vercel.app")
@@ -42,6 +42,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     FRONTEND_URL,
+]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -75,13 +76,10 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
-
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
 }
@@ -131,7 +129,6 @@ EMAIL_HOST_PASSWORD = os.environ.get("password")
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-      # Add these at the top of your settings.py
 
 DATABASES = {
     'default': {
@@ -141,7 +138,7 @@ DATABASES = {
         'PASSWORD': tmpPostgres.password,
         'HOST': tmpPostgres.hostname,
         'PORT': 5432,
-        'CON_MAX_AGE':30,
+        'CONN_MAX_AGE': 30,
         'OPTIONS': dict(parse_qsl(tmpPostgres.query)),
     }
 }
@@ -182,5 +179,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Add this line
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
