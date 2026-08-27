@@ -24,7 +24,7 @@ def generate_ai_response(prompt):
         
         # Call Groq API with supported model
         message = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b", 
             messages=[
                 {
                     "role": "system",
