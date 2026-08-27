@@ -32,7 +32,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG") == "True"
 #google Ai studio api key
-GEMINI_API_KEY = os.getenv("API_KEY")
+#GEMINI_API_KEY = os.getenv("API_KEY")
 
 # Explicit ALLOWED_HOSTS for production on Render and local development
 ALLOWED_HOSTS = [
