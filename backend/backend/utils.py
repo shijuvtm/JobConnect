@@ -1,28 +1,36 @@
-import sib_api_v3_sdk
-from sib_api_v3_sdk.rest import ApiException
+import logging
+import requests
 from django.conf import settings
-import os
 
-def send_brevo_email(subject, html_content, to_email):
-    configuration = sib_api_v3_sdk.Configuration()
-    configuration.api_key['api-key'] = os.getenv('BREVO_API_KEY')
+logger = logging.getLogger(__name__)
+BREVO_URL = "https://api.brevo.com/v3/smtp/email"
 
-    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
-    
-    # Define the sender (Must be an authorized sender in your Brevo dashboard)
-    sender = {"name": "JobConnect", "email": os.getenv("email")} 
-    to = [{"email": to_email}]
-    
-    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
-        to=to,
-        html_content=html_content,
-        sender=sender,
-        subject=subject
-    )
+
+def send_brevo_email(subject, html_content, to_email, to_name=None):
+    if not settings.BREVO_API_KEY:
+        logger.error("BREVO_API_KEY is not set")
+        return False
+
+    payload = {
+        "sender": {
+            "name": settings.BREVO_SENDER_NAME,
+            "email": settings.BREVO_SENDER_EMAIL,
+        },
+        "to": [{"email": to_email, "name": to_name or to_email}],
+        "subject": subject,
+        "htmlContent": html_content,
+    }
+    headers = {
+        "api-key": settings.BREVO_API_KEY,
+        "accept": "application/json",
+        "content-type": "application/json",
+    }
 
     try:
-        api_response = api_instance.send_transac_email(send_smtp_email)
+        r = requests.post(BREVO_URL, json=payload, headers=headers, timeout=10)
+        r.raise_for_status()
         return True
-    except ApiException as e:
-        print(f"Exception when calling Brevo API: {e}")
+    except requests.RequestException as e:
+        body = e.response.text if e.response is not None else ""
+        logger.error("Brevo send failed: %s %s", e, body)
         return False
