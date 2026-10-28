@@ -20,6 +20,7 @@ from .services.ai_service import generate_ai_response
 #from django.core.mail import send_mail
 from .utils import send_brevo_email
 from .serializers import ApplicationSerializer, JobsSerializer, RegisterSerializer
+from datetime import datetime, timedelta, timezone
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
