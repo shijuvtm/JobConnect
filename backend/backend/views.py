@@ -71,106 +71,86 @@ def jwt_login(request):
             "email": user.email
         }
     }, status=status.HTTP_200_OK)
-
+    
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def forgot_password(request):
     email = request.data.get("email")
+    if not email:
+        return Response({"message": "Email is required"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        return Response(
-            {"message": "User with this email does not exist"},
-            status=status.HTTP_404_NOT_FOUND
-        )
+    generic = Response(
+        {"message": "If this email is registered, a reset link has been sent"},
+        status=status.HTTP_200_OK,
+    )
 
+    user = User.objects.filter(email=email).first()
+    if not user:
+        return generic  # don't reveal whether the email exists
+
+    now = datetime.now(timezone.utc)
     payload = {
         "user_id": user.id,
-        "exp": datetime.utcnow() + timedelta(minutes=10),
-        "iat": datetime.utcnow(),
-        "type": "password_reset"
+        "exp": now + timedelta(minutes=10),
+        "iat": now,
+        "type": "password_reset",
     }
-
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
-
-    # Use the configured frontend URL (e.g., localhost:5173 for local dev)
     reset_link = f"{settings.FRONTEND_URL}/reset-password/{token}/"
 
     email_body = f"""
     <html>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <h3 style="color: #333;">Password Reset Request</h3>
-            <p>Hi {user.username},</p>
-            <p>Click the button below to reset your password. This link will expire in 10 minutes.</p>
-            <div style="margin: 20px 0;">
-                <a href="{reset_link}" style="padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                    Reset Password
-                </a>
-            </div>
-            <p>If you didn't request this, please ignore this email.</p>
-            <hr style="border: none; border-top: 1px solid #eee;">
-            <p style="font-size: 12px; color: #777;">JobConnect - Palakkad, Kerala</p>
-        </body>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h3>Password Reset Request</h3>
+        <p>Hi {user.username},</p>
+        <p>Click the button below to reset your password. This link expires in 10 minutes.</p>
+        <p><a href="{reset_link}" style="padding:12px 24px;background:#007bff;color:#fff;text-decoration:none;border-radius:5px;font-weight:bold;">Reset Password</a></p>
+        <p>If you didn't request this, please ignore this email.</p>
+        <hr>
+        <p style="font-size:12px;color:#777;">JobConnect LLP- Palakkad, Kerala</p>
+      </body>
     </html>
     """
 
-    # Calling the function from utils.py
-    email_sent = send_brevo_email(
+    if not send_brevo_email(
         subject="Reset Your JobConnect Password",
         html_content=email_body,
-        to_email=email
-    )
+        to_email=email,
+        to_name=user.username,
+    ):
+        return Response({"error": "Failed to send email"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    if email_sent:
-        return Response({"message": "Password reset link sent to email"}, status=status.HTTP_200_OK)
-    else:
-        # Check your Render logs if this triggers—it usually means the API key is missing
-        return Response({"error": "Failed to send email via Brevo"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return generic
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def reset_password(request, token):
-
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-
-        if payload["type"] != "password_reset":
-            return Response(
-                {"message": "Invalid token type"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
+        if payload.get("type") != "password_reset":
+            return Response({"message": "Invalid token type"},
+                            status=status.HTTP_400_BAD_REQUEST)
         user = User.objects.get(id=payload["user_id"])
-
     except jwt.ExpiredSignatureError:
-        return Response(
-            {"message": "Token expired"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    except jwt.InvalidTokenError:
-        return Response(
-            {"message": "Invalid token"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"message": "Token expired"},
+                        status=status.HTTP_400_BAD_REQUEST)
+    except (jwt.InvalidTokenError, User.DoesNotExist, KeyError):
+        return Response({"message": "Invalid token"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
     new_password = request.data.get("password")
-
     if not new_password:
-        return Response(
-            {"message": "Password is required"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"message": "Password is required"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
     user.set_password(new_password)
     user.save()
-
-    return Response(
-        {"message": "Password reset successful"},
-        status=status.HTTP_200_OK
-    )
-
+    return Response({"message": "Password reset successful"},
+                    status=status.HTTP_200_OK)@api_view(['POST'])
+                    
 @api_view(['GET'])
 def job_list(request):
     jobs = Job.objects.all()
