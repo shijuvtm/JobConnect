@@ -9,3 +9,4 @@ sib-api-v3-sdk
 requests
 gunicorn
 groq
+logging
