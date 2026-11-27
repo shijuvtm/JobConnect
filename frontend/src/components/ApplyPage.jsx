@@ -84,9 +84,9 @@ export default function ApplyPage() {
           </div>
 
         <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-700">
-            <a href="#" className="hover:text-blue-700 transition-colors">Jobs</a>
-            <a href="#" className="hover:text-blue-700 transition-colors">Companies</a>
-            <a href="#" className="hover:text-blue-700 transition-colors">My Applications</a>
+            <a href="/jobs" className="hover:text-blue-700 transition-colors">Jobs</a>
+            <a href="/services" className="hover:text-blue-700 transition-colors">AI Services</a>
+            <a href="/applications" className="hover:text-blue-700 transition-colors">My Applications</a>
             <NavLink to={"/register"} className="hover:text-blue-700 transition " > Logout </NavLink>        
          </nav>
 
@@ -101,9 +101,9 @@ export default function ApplyPage() {
         
         {isMenuOpen && (
           <nav className="md:hidden border-t bg-white px-4 py-4 flex flex-col gap-4 shadow-inner">
-            <a href="#" className="text-sm font-semibold text-gray-700 py-2">Jobs</a>
-            <a href="#" className="text-sm font-semibold text-gray-700 py-2">Companies</a>
-            <a href="#" className="text-sm font-semibold text-gray-700 py-2 border-b pb-4">My Applications</a>
+            <a href="/jobs" className="text-sm font-semibold text-gray-700 py-2">Jobs</a>
+            <a href="/services" className="text-sm font-semibold text-gray-700 py-2">AI Services</a>
+            <a href="/application" className="text-sm font-semibold text-gray-700 py-2 border-b pb-4">My Applications</a>
             <NavLink to={"/register"} className="block text-sm font-medium text-gray-700 hover:text-blue-700" > Logout </NavLink>         
        </nav>
         )}
