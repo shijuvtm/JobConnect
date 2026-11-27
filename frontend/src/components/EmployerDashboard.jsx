@@ -11,6 +11,25 @@ function apiError(data) {
   return Object.values(data).flat().join(" ");
 }
 
+async function readJson(response) {
+  const text = await response.text();
+  let data = {};
+
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(
+      `Server returned an unexpected response (status ${response.status}). ` +
+      "Check that the backend is running, restarted, and that VITE_API_URL is correct."
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(apiError(data) || `Request failed (status ${response.status}).`);
+  }
+  return data;
+}
+
 export default function EmployerDashboard() {
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
@@ -23,15 +42,17 @@ export default function EmployerDashboard() {
   const navigate = useNavigate();
   const company = localStorage.getItem("username") || "Employer";
 
-  const loadDashboard = useCallback(async () => {
+    const loadDashboard = useCallback(async () => {
     const token = localStorage.getItem("access");
     try {
       const [jobsResponse, applicationsResponse] = await Promise.all([
         fetch(`${API_URL}/employer/jobs`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/employer/applications?q=${encodeURIComponent(search)}`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
-      const [jobsData, applicationsData] = await Promise.all([jobsResponse.json(), applicationsResponse.json()]);
-      if (!jobsResponse.ok || !applicationsResponse.ok) throw new Error(apiError(!jobsResponse.ok ? jobsData : applicationsData));
+      const [jobsData, applicationsData] = await Promise.all([
+        readJson(jobsResponse),
+        readJson(applicationsResponse),
+      ]);
       setJobs(jobsData);
       setApplications(applicationsData);
       setError("");
@@ -62,8 +83,7 @@ export default function EmployerDashboard() {
         headers: { Authorization: `Bearer ${localStorage.getItem("access")}`, "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(apiError(data));
+      await readJson(response);
       setForm({ title: "", description: "", experience: "", location: "", salary_range: "" });
       await loadDashboard();
     } catch (requestError) {
@@ -73,7 +93,7 @@ export default function EmployerDashboard() {
     }
   };
 
-  const setJobStatus = async (job) => {
+ const setJobStatus = async (job) => {
     const nextStatus = job.status === "active" ? "closed" : "active";
     try {
       const response = await fetch(`${API_URL}/employer/jobs/${job.id}/status`, {
@@ -81,23 +101,21 @@ export default function EmployerDashboard() {
         headers: { Authorization: `Bearer ${localStorage.getItem("access")}`, "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(apiError(data));
+      const data = await readJson(response);
       setJobs((current) => current.map((item) => item.id === job.id ? { ...item, status: data.status } : item));
     } catch (requestError) {
       setError(requestError.message || "Unable to update job status.");
     }
   };
 
-  const setApplicationStatus = async (applicationId, nextStatus) => {
+const setApplicationStatus = async (applicationId, nextStatus) => {
     try {
       const response = await fetch(`${API_URL}/employer/applications/${applicationId}/status`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${localStorage.getItem("access")}`, "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(apiError(data));
+      const data = await readJson(response);
       setApplications((current) => current.map((application) => application.id === applicationId ? { ...application, status: data.status } : application));
     } catch (requestError) {
       setError(requestError.message || "Unable to update applicant status.");
