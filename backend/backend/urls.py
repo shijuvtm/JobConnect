@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import hello_api,register_user,register_employer,jwt_login,job_list,apply_job,applyed_list,application_detail,forgot_password,reset_password,my_profile,update_resume,employer_jobs,employer_job_status,employer_applications,employer_application_status
+from .views import hello_api,register_user,register_employer,jwt_login,job_list,apply_job,applyed_list,application_detail,forgot_password,reset_password,my_profile,update_resume,employer_jobs,employer_job_status,employer_applications,employer_application_status,employer_application_resume
 from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,6 +31,7 @@ urlpatterns = [
     path("employer/jobs/<int:pk>/status",employer_job_status),
     path("employer/applications",employer_applications),
     path("employer/applications/<int:pk>/status",employer_application_status),
+    path("employer/applications/<int:pk>/resume", employer_application_resume),
     path("apply",apply_job),
     path("my-application/",applyed_list),
     path('my-application/<int:pk>/',application_detail),
