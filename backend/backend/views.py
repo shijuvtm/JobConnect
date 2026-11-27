@@ -19,6 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from .services.ai_service import generate_ai_response
 #from django.core.mail import send_mail
+from django.http import FileResponse
 from .utils import send_brevo_email
 from .serializers import (
     ApplicationSerializer,
@@ -283,10 +284,43 @@ def employer_applications(request):
             "name": f"{applicant.first_name} {applicant.last_name}".strip() or applicant.username,
             "email": applicant.email,
             "mobile": getattr(getattr(applicant, "profile", None), "phone", ""),
+            "has_resume": bool(profile and profile.resume),
             "status": application.status,
             "applied_on": application.applied_on,
         })
+        
     return Response(results)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def employer_application_resume(request, pk):
+    denied = _require_employer(request)
+    if denied:
+        return denied
+
+    # Only the employer who posted the job can open the applicant's resume
+    application = (
+        Application.objects.select_related("applicant__profile")
+        .filter(pk=pk, job__created_by=request.user)
+        .first()
+    )
+    if application is None:
+        return Response({"message": "Application not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    profile = getattr(application.applicant, "profile", None)
+    if not profile or not profile.resume:
+        return Response(
+            {"message": "This candidate has no resume uploaded."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    as_attachment = request.query_params.get("mode") == "download"
+    return FileResponse(
+        profile.resume.open("rb"),
+        as_attachment=as_attachment,
+        filename=f"{application.applicant.username}_resume.pdf",
+        content_type="application/pdf",
+    )
 
 
 @api_view(["PATCH"])
