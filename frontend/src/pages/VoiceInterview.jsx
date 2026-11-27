@@ -24,8 +24,8 @@ function speak(text, onEnd) {
    Config
 ────────────────────────────────────────────── */
 const TOTAL = 5;
-const AUTO_CLOSE_SECONDS = 10;          // time the scorecard stays before leaving
-const AFTER_INTERVIEW_ROUTE = '/services'; // change to your dashboard route if different
+const AUTO_CLOSE_SECONDS = 10;
+const AFTER_INTERVIEW_ROUTE = '/services';
 
 /* ──────────────────────────────────────────────
    Phase constants
@@ -44,7 +44,6 @@ export default function VoiceInterview() {
   const username = localStorage.getItem('username') || 'User';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  /* Interview state */
   const [phase, setPhase] = useState(PHASE.SETUP);
   const [role, setRole] = useState('');
   const [conversationHistory, setConversationHistory] = useState([]);
@@ -52,17 +51,21 @@ export default function VoiceInterview() {
   const [aiText, setAiText] = useState('');
   const [scorecard, setScorecard] = useState('');
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [micError, setMicError] = useState('');
   const [autoClose, setAutoClose] = useState(true);
   const [closeCountdown, setCloseCountdown] = useState(AUTO_CLOSE_SECONDS);
 
-  /* Refs: readable inside speech/timer callbacks without stale values */
+  /* Refs: safe to read inside speech/timer callbacks */
   const recognitionRef = useRef(null);
   const chatEndRef = useRef(null);
-  const activeRef = useRef(false);     // true only while an interview is running
-  const transcriptRef = useRef('');    // latest mic text
+  const activeRef = useRef(false);        // interview is running
   const roleRef = useRef('');
+  const historyRef = useRef([]);          // conversation for the current turn
+  const committedRef = useRef('');        // text from earlier mic sessions this turn
+  const transcriptRef = useRef('');       // full text of this turn
+  const stopRequestedRef = useRef(false); // user tapped the mic to submit
+  const fatalErrorRef = useRef(null);     // permission/network errors
 
-  /* Auto-scroll chat */
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [conversationHistory, aiText, transcript]);
@@ -81,14 +84,16 @@ export default function VoiceInterview() {
       recognitionRef.current = null;
     }
 
+    committedRef.current = '';
     transcriptRef.current = '';
+    stopRequestedRef.current = false;
+    fatalErrorRef.current = null;
     setTranscript('');
+    setMicError('');
   }, []);
 
-  /* Stop mic/speech if the user leaves the page */
   useEffect(() => () => stopAll(), [stopAll]);
 
-  /* ── Call the backend ── */
   const requestAI = async (history) => {
     const res = await axios.post(`${API_URL}/api/voice-interview/`, {
       role: roleRef.current,
@@ -97,7 +102,6 @@ export default function VoiceInterview() {
     return res.data; // { response, is_complete }
   };
 
-  /* ── Scorecard reached: show it, then leave the page ── */
   const finishWithScorecard = (text) => {
     stopAll();
     setScorecard(text);
@@ -107,50 +111,94 @@ export default function VoiceInterview() {
     speak('The interview is complete! Your scorecard is now displayed on screen.');
   };
 
-  /* ── Start microphone ── */
+  /* ── Start a fresh answer turn ── */
+  const beginTurn = (history) => {
+    committedRef.current = '';
+    transcriptRef.current = '';
+    stopRequestedRef.current = false;
+    fatalErrorRef.current = null;
+    setTranscript('');
+    setMicError('');
+    startListening(history);
+  };
+
+  /* ── Start or restart the mic session (keeps text collected so far) ── */
   const startListening = (history) => {
     if (!SpeechRecognition || !activeRef.current) return;
+    historyRef.current = history;
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
-    recognition.continuous = false;
+    recognition.continuous = true;      // keep listening through pauses
     recognition.interimResults = true;
 
     recognition.onresult = (event) => {
-      const text = Array.from(event.results)
+      const current = Array.from(event.results)
         .map((r) => r[0].transcript)
         .join(' ');
-      transcriptRef.current = text;
-      setTranscript(text);
-    };
-
-    recognition.onend = () => {
-      if (!activeRef.current) return; // interview was ended or restarted
-
-      const answer = transcriptRef.current.trim();
-      transcriptRef.current = '';
-      setTranscript('');
-
-      if (!answer) {
-        startListening(history); // nothing heard, listen again
-        return;
-      }
-      submitAnswer(history, answer);
+      const full = [committedRef.current, current].filter(Boolean).join(' ').trim();
+      transcriptRef.current = full;
+      setTranscript(full);
     };
 
     recognition.onerror = (event) => {
       console.error('Speech error:', event.error);
-      if (event.error === 'no-speech' || event.error === 'aborted') return; // onend handles these
-      // Fatal mic error: stop the loop so it doesn't retry forever
-      activeRef.current = false;
-      setAiText('Microphone error. Please check permissions and try again.');
+      if (event.error === 'no-speech' || event.error === 'aborted') return;
+      fatalErrorRef.current = event.error;
+    };
+
+    recognition.onend = () => {
+      if (!activeRef.current || recognitionRef.current !== recognition) return;
+      recognitionRef.current = null;
+
+      // Real failure (permission, network): stop and let the user retry
+      if (fatalErrorRef.current) {
+        setMicError(
+          fatalErrorRef.current === 'not-allowed'
+            ? 'Microphone permission denied. Allow mic access, then tap to retry.'
+            : 'Speech recognition stopped. Tap the mic to retry.'
+        );
+        return;
+      }
+
+      // Chrome ended the session by itself (pause or time limit): keep the text and resume
+      if (!stopRequestedRef.current) {
+        committedRef.current = transcriptRef.current;
+        startListening(historyRef.current);
+        return;
+      }
+
+      // User tapped the mic to finish the answer
+      const answer = transcriptRef.current.trim();
+      if (answer) {
+        submitAnswer(historyRef.current, answer);
+      } else {
+        // Nothing said yet: keep listening
+        beginTurn(historyRef.current);
+      }
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (err) {
+      console.error(err);
+      setMicError('Could not start the microphone. Tap the mic to retry.');
+    }
   };
 
-  /* ── User answered: save it and ask the next question ── */
+  /* ── Tap the mic: finish answer, or retry after an error ── */
+  const onMicClick = () => {
+    if (micError) {
+      beginTurn(historyRef.current);
+      return;
+    }
+    if (phase === PHASE.LISTENING) {
+      stopRequestedRef.current = true;
+      recognitionRef.current?.stop(); // onend will submit the answer
+    }
+  };
+
   const submitAnswer = (history, answer) => {
     const updated = [...history, { speaker: 'candidate', text: answer }];
     setConversationHistory(updated);
@@ -158,7 +206,6 @@ export default function VoiceInterview() {
     handleAIReply(updated);
   };
 
-  /* ── Get the next AI question, speak it, then listen ── */
   const handleAIReply = async (history) => {
     if (!activeRef.current) return;
     setPhase(PHASE.THINKING);
@@ -180,7 +227,7 @@ export default function VoiceInterview() {
       speak(response, () => {
         if (!activeRef.current) return;
         setPhase(PHASE.LISTENING);
-        startListening(updated);
+        beginTurn(updated);
       });
     } catch (err) {
       console.error(err);
@@ -190,7 +237,6 @@ export default function VoiceInterview() {
     }
   };
 
-  /* ── Begin interview ── */
   const startInterview = (e) => {
     e.preventDefault();
     if (!role.trim()) return;
@@ -205,12 +251,6 @@ export default function VoiceInterview() {
     handleAIReply([]);
   };
 
-  /* ── Stop mic manually (answer submitted) ── */
-  const stopListening = () => {
-    recognitionRef.current?.stop();
-  };
-
-  /* ── Restart ── */
   const restart = () => {
     stopAll();
     setPhase(PHASE.SETUP);
@@ -222,14 +262,13 @@ export default function VoiceInterview() {
     setCloseCountdown(AUTO_CLOSE_SECONDS);
   };
 
-  /* ── End interview early: get scorecard for what was asked so far ── */
   const endInterview = async () => {
     if (conversationHistory.length === 0) {
       restart();
       return;
     }
 
-    stopAll(); // stop mic and speech right away
+    stopAll();
     setPhase(PHASE.THINKING);
 
     const endSignal = [
@@ -275,7 +314,7 @@ export default function VoiceInterview() {
     [PHASE.COMPLETE]: 'Interview complete!',
   }[phase] || '';
 
-  const micActive = phase === PHASE.LISTENING;
+  const micActive = phase === PHASE.LISTENING && !micError;
   const micBusy = [PHASE.THINKING, PHASE.SPEAKING, PHASE.PROCESSING].includes(phase);
 
   return (
@@ -316,7 +355,7 @@ export default function VoiceInterview() {
       {/* ── MAIN ── */}
       <main className="flex-1 flex flex-col max-w-3xl w-full mx-auto px-4 py-8">
 
-        {/* ─ SETUP SCREEN ─ */}
+        {/* ─ SETUP ─ */}
         {phase === PHASE.SETUP && (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <div className="w-20 h-20 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center mb-6">
@@ -353,11 +392,10 @@ export default function VoiceInterview() {
           </div>
         )}
 
-        {/* ─ INTERVIEW SCREEN ─ */}
+        {/* ─ INTERVIEW ─ */}
         {phase !== PHASE.SETUP && phase !== PHASE.COMPLETE && (
           <div className="flex-1 flex flex-col gap-6">
 
-            {/* Progress bar */}
             <div className="flex items-center gap-3">
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap">
                 Question {Math.min(questionIndex + 1, TOTAL)} / {TOTAL}
@@ -373,7 +411,6 @@ export default function VoiceInterview() {
               </button>
             </div>
 
-            {/* Conversation bubbles */}
             <div className="flex-1 space-y-4 overflow-y-auto max-h-[50vh] pr-1">
               {conversationHistory.map((turn, i) => (
                 <div key={i} className={`flex ${turn.speaker === 'ai' ? 'justify-start' : 'justify-end'}`}>
@@ -404,40 +441,47 @@ export default function VoiceInterview() {
               <div ref={chatEndRef} />
             </div>
 
-            {/* Status + Mic */}
             <div className="flex flex-col items-center gap-4 pt-4 border-t border-slate-800">
               <p className={`text-sm font-medium ${micActive ? 'text-green-400' : 'text-slate-400'}`}>
                 {micActive && <span className="inline-block w-2 h-2 bg-green-400 rounded-full mr-2 animate-ping" />}
-                {phaseLabel}
+                {micError ? micError : phaseLabel}
               </p>
 
               <button
-                onClick={micActive ? stopListening : undefined}
+                onClick={onMicClick}
                 disabled={micBusy}
                 className={`relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg
                   ${micActive
                     ? 'bg-red-600 hover:bg-red-500 shadow-red-600/40 scale-110'
-                    : micBusy
-                      ? 'bg-slate-700 cursor-not-allowed'
-                      : 'bg-slate-700'}`}
+                    : micError
+                      ? 'bg-amber-600 hover:bg-amber-500'
+                      : micBusy
+                        ? 'bg-slate-700 cursor-not-allowed'
+                        : 'bg-slate-700'}`}
               >
                 {micActive && (
                   <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-30" />
                 )}
                 {micActive
                   ? <MicOff className="w-8 h-8 text-white" />
-                  : phase === PHASE.SPEAKING
-                    ? <Volume2 className="w-8 h-8 text-blue-400 animate-pulse" />
-                    : <Mic className="w-8 h-8 text-slate-400" />}
+                  : micError
+                    ? <Mic className="w-8 h-8 text-white" />
+                    : phase === PHASE.SPEAKING
+                      ? <Volume2 className="w-8 h-8 text-blue-400 animate-pulse" />
+                      : <Mic className="w-8 h-8 text-slate-400" />}
               </button>
 
               <p className="text-xs text-slate-600">
-                {micActive ? 'Tap to stop and send your answer' : 'Mic activates automatically after the AI speaks'}
+                {micError
+                  ? 'Tap the mic to retry'
+                  : micActive
+                    ? 'Take your time. Tap the mic when you finish your answer'
+                    : 'Mic activates automatically after the AI speaks'}
               </p>
 
               <button
                 onClick={endInterview}
-                disabled={micBusy && phase !== PHASE.LISTENING}
+                disabled={micBusy}
                 className="mt-2 flex items-center gap-2 px-5 py-2 rounded-full border border-red-800/60 bg-red-950/40 text-red-400 text-xs font-semibold hover:bg-red-900/50 hover:text-red-300 hover:border-red-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -449,7 +493,7 @@ export default function VoiceInterview() {
           </div>
         )}
 
-        {/* ─ COMPLETE / SCORECARD ─ */}
+        {/* ─ SCORECARD ─ */}
         {phase === PHASE.COMPLETE && (
           <div className="flex-1 flex flex-col gap-6">
             <div className="flex items-center gap-3">
