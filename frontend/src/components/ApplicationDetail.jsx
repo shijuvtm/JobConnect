@@ -115,6 +115,10 @@ const ApplicationDetail = () => {
               <p className="text-gray-800">{app?.salary}</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 uppercase font-bold">Salary</p>
+              <p className="text-gray-800">{app?.experience}</p>
+            </div
+            <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-xs text-gray-500 uppercase font-bold">Status</p>
               <p className="font-bold text-blue-700">{app?.status?.toUpperCase()}</p>
             </div>
