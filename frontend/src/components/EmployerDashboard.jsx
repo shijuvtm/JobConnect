@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Building2, BriefcaseBusiness, LogOut, Plus, Search, Users } from "lucide-react";
+import { Building2, BriefcaseBusiness, Download, Eye, FileX, LogOut, Plus, Search, Users } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
 
@@ -18,6 +18,7 @@ export default function EmployerDashboard() {
   const [form, setForm] = useState({ title: "", description: "", experience: "", location: "", salary_range: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [resumeBusyId, setResumeBusyId] = useState(null);
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const company = localStorage.getItem("username") || "Employer";
@@ -103,6 +104,47 @@ export default function EmployerDashboard() {
     }
   };
 
+  /* Open or download a candidate's resume through the protected endpoint */
+  const openResume = async (application, mode) => {
+    // Open the tab synchronously so browsers don't block it as a pop-up
+    const newTab = mode === "view" ? window.open("", "_blank") : null;
+    setResumeBusyId(application.id);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `${API_URL}/employer/applications/${application.id}/resume?mode=${mode}`,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("access")}` } }
+      );
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || "Unable to open this resume.");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      if (mode === "download") {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${application.name.replace(/\s+/g, "_")}_resume.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } else if (newTab) {
+        newTab.location.href = url;
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      }
+    } catch (requestError) {
+      newTab?.close();
+      setError(requestError.message || "Unable to open this resume.");
+    } finally {
+      setResumeBusyId(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -179,15 +221,32 @@ export default function EmployerDashboard() {
                     </div>
                     {jobApplications.length ? (
                       <div className="divide-y divide-slate-100">
-                        {jobApplications.map((application) => (
-                          <div key={application.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[1fr_1fr_auto] sm:items-center sm:px-6">
-                            <div><p className="font-bold">{application.name}</p><p className="mt-0.5 text-sm text-slate-500">{application.email}</p></div>
-                            <div><p className="text-sm font-medium text-slate-700">{application.mobile || "Mobile not provided"}</p><p className="mt-0.5 text-xs text-slate-400">Applied {new Date(application.applied_on).toLocaleDateString()}</p></div>
-                            <select aria-label={`Application status for ${application.name}`} value={application.status} onChange={(event) => setApplicationStatus(application.id, event.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold capitalize text-slate-700 outline-none focus:border-blue-500">
-                              {applicationStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
-                            </select>
-                          </div>
-                        ))}
+                        {jobApplications.map((application) => {
+                          const busy = resumeBusyId === application.id;
+                          return (
+                            <div key={application.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[1fr_1fr_auto] sm:items-center sm:px-6">
+                              <div><p className="font-bold">{application.name}</p><p className="mt-0.5 text-sm text-slate-500">{application.email}</p></div>
+                              <div><p className="text-sm font-medium text-slate-700">{application.mobile || "Mobile not provided"}</p><p className="mt-0.5 text-xs text-slate-400">Applied {new Date(application.applied_on).toLocaleDateString()}</p></div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                {application.has_resume ? (
+                                  <>
+                                    <button type="button" onClick={() => openResume(application, "view")} disabled={busy} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60">
+                                      <Eye size={15} /> View resume
+                                    </button>
+                                    <button type="button" onClick={() => openResume(application, "download")} disabled={busy} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60">
+                                      <Download size={15} /> {busy ? "Loading..." : "Download"}
+                                    </button>
+                                  </>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1.5 text-xs text-slate-400"><FileX size={15} /> No resume</span>
+                                )}
+                                <select aria-label={`Application status for ${application.name}`} value={application.status} onChange={(event) => setApplicationStatus(application.id, event.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold capitalize text-slate-700 outline-none focus:border-blue-500">
+                                  {applicationStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
+                                </select>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : <p className="px-6 py-5 text-sm text-slate-500">{search ? "No applicants match this search." : "No applications received yet."}</p>}
                   </article>
