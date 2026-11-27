@@ -137,7 +137,7 @@ export default function ApplyPage() {
           </div>
 
           <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-700">
-            <NavLink to="/jobs" className="hover:text-blue-700 transition-colors">Jobs</Navlink>
+            <NavLink to="/jobs" className="hover:text-blue-700 transition-colors">Jobs</NavLink>
             <NavLink to="/services" className="hover:text-blue-700 transition-colors">AI Services</NavLink>
             <NavLink to="/application" className="hover:text-blue-700 transition-colors">My Applications</NavLink>
             <NavLink to={"/register"} className="hover:text-blue-700 transition">Logout</NavLink>
