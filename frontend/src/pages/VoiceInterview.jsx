@@ -21,15 +21,22 @@ function speak(text, onEnd) {
 }
 
 /* ──────────────────────────────────────────────
+   Config
+────────────────────────────────────────────── */
+const TOTAL = 5;
+const AUTO_CLOSE_SECONDS = 10;          // time the scorecard stays before leaving
+const AFTER_INTERVIEW_ROUTE = '/services'; // change to your dashboard route if different
+
+/* ──────────────────────────────────────────────
    Phase constants
 ────────────────────────────────────────────── */
 const PHASE = {
-  SETUP: 'setup',         // role selection screen
-  THINKING: 'thinking',   // waiting for AI question
-  SPEAKING: 'speaking',   // AI is speaking question
-  LISTENING: 'listening', // mic is active, capturing user
-  PROCESSING: 'processing', // user stopped, sending answer to AI
-  COMPLETE: 'complete',   // 5 questions done, show scorecard
+  SETUP: 'setup',
+  THINKING: 'thinking',
+  SPEAKING: 'speaking',
+  LISTENING: 'listening',
+  PROCESSING: 'processing',
+  COMPLETE: 'complete',
 };
 
 export default function VoiceInterview() {
@@ -41,60 +48,68 @@ export default function VoiceInterview() {
   const [phase, setPhase] = useState(PHASE.SETUP);
   const [role, setRole] = useState('');
   const [conversationHistory, setConversationHistory] = useState([]);
-  const [transcript, setTranscript] = useState('');     // live mic transcript
-  const [aiText, setAiText] = useState('');             // current AI question text
+  const [transcript, setTranscript] = useState('');
+  const [aiText, setAiText] = useState('');
   const [scorecard, setScorecard] = useState('');
-  const [questionIndex, setQuestionIndex] = useState(0); // 0-based (0–4)
-  const TOTAL = 5;
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [autoClose, setAutoClose] = useState(true);
+  const [closeCountdown, setCloseCountdown] = useState(AUTO_CLOSE_SECONDS);
 
+  /* Refs: readable inside speech/timer callbacks without stale values */
   const recognitionRef = useRef(null);
   const chatEndRef = useRef(null);
+  const activeRef = useRef(false);     // true only while an interview is running
+  const transcriptRef = useRef('');    // latest mic text
+  const roleRef = useRef('');
 
   /* Auto-scroll chat */
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [conversationHistory, aiText, transcript]);
 
-  /* ── Fetch next AI question/scorecard ── */
-  const fetchNextAI = useCallback(async (history) => {
-    setPhase(PHASE.THINKING);
-    try {
-      const res = await axios.post(`${API_URL}/api/voice-interview/`, {
-        role,
-        conversation_history: history,
-      });
-      const { response, is_complete } = res.data;
-      setAiText(response);
+  /* ── Stop speech + mic and detach handlers so nothing restarts ── */
+  const stopAll = useCallback(() => {
+    activeRef.current = false;
+    window.speechSynthesis.cancel();
 
-      if (is_complete) {
-        setScorecard(response);
-        setPhase(PHASE.COMPLETE);
-        speak(
-          "The interview is complete! Your scorecard is now displayed on screen.",
-        );
-        return;
-      }
-
-      // Add AI turn to history
-      const updated = [...history, { speaker: 'ai', text: response }];
-      setConversationHistory(updated);
-      setPhase(PHASE.SPEAKING);
-
-      // Speak the question, then switch to LISTENING
-      speak(response, () => {
-        setPhase(PHASE.LISTENING);
-        startListening(updated);
-      });
-    } catch (err) {
-      console.error(err);
-      setAiText('Sorry, I had trouble connecting. Please try again.');
-      setPhase(PHASE.SPEAKING);
+    const rec = recognitionRef.current;
+    if (rec) {
+      rec.onresult = null;
+      rec.onend = null;
+      rec.onerror = null;
+      try { rec.abort(); } catch { /* already stopped */ }
+      recognitionRef.current = null;
     }
-  }, [role]); // eslint-disable-line
+
+    transcriptRef.current = '';
+    setTranscript('');
+  }, []);
+
+  /* Stop mic/speech if the user leaves the page */
+  useEffect(() => () => stopAll(), [stopAll]);
+
+  /* ── Call the backend ── */
+  const requestAI = async (history) => {
+    const res = await axios.post(`${API_URL}/api/voice-interview/`, {
+      role: roleRef.current,
+      conversation_history: history,
+    });
+    return res.data; // { response, is_complete }
+  };
+
+  /* ── Scorecard reached: show it, then leave the page ── */
+  const finishWithScorecard = (text) => {
+    stopAll();
+    setScorecard(text);
+    setAutoClose(true);
+    setCloseCountdown(AUTO_CLOSE_SECONDS);
+    setPhase(PHASE.COMPLETE);
+    speak('The interview is complete! Your scorecard is now displayed on screen.');
+  };
 
   /* ── Start microphone ── */
-  const startListening = useCallback((currentHistory) => {
-    if (!SpeechRecognition) return;
+  const startListening = (history) => {
+    if (!SpeechRecognition || !activeRef.current) return;
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
@@ -102,97 +117,151 @@ export default function VoiceInterview() {
     recognition.interimResults = true;
 
     recognition.onresult = (event) => {
-      let interim = '';
-      let final = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) final += t;
-        else interim += t;
-      }
-      setTranscript(final || interim);
+      const text = Array.from(event.results)
+        .map((r) => r[0].transcript)
+        .join(' ');
+      transcriptRef.current = text;
+      setTranscript(text);
     };
 
     recognition.onend = () => {
-      // Only proceed if we captured something
-      setTranscript((prev) => {
-        if (prev.trim()) {
-          const answer = prev.trim();
-          const updated = [...currentHistory, { speaker: 'candidate', text: answer }];
-          setConversationHistory(updated);
-          setTranscript('');
-          setQuestionIndex((q) => q + 1);
-          setPhase(PHASE.PROCESSING);
-          fetchNextAI(updated);
-        } else {
-          // Nothing heard — go back to listening
-          setPhase(PHASE.LISTENING);
-          startListening(currentHistory);
-        }
-        return '';
-      });
+      if (!activeRef.current) return; // interview was ended or restarted
+
+      const answer = transcriptRef.current.trim();
+      transcriptRef.current = '';
+      setTranscript('');
+
+      if (!answer) {
+        startListening(history); // nothing heard, listen again
+        return;
+      }
+      submitAnswer(history, answer);
     };
 
     recognition.onerror = (event) => {
       console.error('Speech error:', event.error);
-      if (event.error === 'no-speech') {
-        recognition.stop();
-      }
+      if (event.error === 'no-speech' || event.error === 'aborted') return; // onend handles these
+      // Fatal mic error: stop the loop so it doesn't retry forever
+      activeRef.current = false;
+      setAiText('Microphone error. Please check permissions and try again.');
     };
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [fetchNextAI]);
+  };
 
-  /* ── Stop mic manually ── */
-  const stopListening = () => {
-    recognitionRef.current?.stop();
+  /* ── User answered: save it and ask the next question ── */
+  const submitAnswer = (history, answer) => {
+    const updated = [...history, { speaker: 'candidate', text: answer }];
+    setConversationHistory(updated);
+    setQuestionIndex((q) => q + 1);
+    handleAIReply(updated);
+  };
+
+  /* ── Get the next AI question, speak it, then listen ── */
+  const handleAIReply = async (history) => {
+    if (!activeRef.current) return;
+    setPhase(PHASE.THINKING);
+
+    try {
+      const { response, is_complete } = await requestAI(history);
+      if (!activeRef.current) return;
+
+      if (is_complete) {
+        finishWithScorecard(response);
+        return;
+      }
+
+      const updated = [...history, { speaker: 'ai', text: response }];
+      setConversationHistory(updated);
+      setAiText(response);
+      setPhase(PHASE.SPEAKING);
+
+      speak(response, () => {
+        if (!activeRef.current) return;
+        setPhase(PHASE.LISTENING);
+        startListening(updated);
+      });
+    } catch (err) {
+      console.error(err);
+      if (!activeRef.current) return;
+      setAiText('Sorry, I had trouble connecting. Please try again.');
+      setPhase(PHASE.SPEAKING);
+    }
   };
 
   /* ── Begin interview ── */
   const startInterview = (e) => {
     e.preventDefault();
     if (!role.trim()) return;
+
+    stopAll();
+    roleRef.current = role.trim();
+    activeRef.current = true;
     setConversationHistory([]);
     setQuestionIndex(0);
-    setTranscript('');
     setScorecard('');
-    fetchNextAI([]);
+    setAutoClose(true);
+    handleAIReply([]);
+  };
+
+  /* ── Stop mic manually (answer submitted) ── */
+  const stopListening = () => {
+    recognitionRef.current?.stop();
   };
 
   /* ── Restart ── */
   const restart = () => {
-    window.speechSynthesis.cancel();
-    recognitionRef.current?.abort();
+    stopAll();
     setPhase(PHASE.SETUP);
     setConversationHistory([]);
-    setTranscript('');
     setAiText('');
     setScorecard('');
     setQuestionIndex(0);
+    setAutoClose(true);
+    setCloseCountdown(AUTO_CLOSE_SECONDS);
   };
 
-  /* ── End interview early ── */
-  const endInterview = () => {
-    window.speechSynthesis.cancel();
-    recognitionRef.current?.abort();
-    setTranscript('');
-    // If no conversation at all, just restart to setup
+  /* ── End interview early: get scorecard for what was asked so far ── */
+  const endInterview = async () => {
     if (conversationHistory.length === 0) {
       restart();
       return;
     }
-    // Trigger scorecard with whatever history exists
+
+    stopAll(); // stop mic and speech right away
+    setPhase(PHASE.THINKING);
+
     const endSignal = [
       ...conversationHistory,
-      { speaker: 'candidate', text: '[Candidate ended the interview early]' },
-      { speaker: 'candidate', text: '[Candidate ended the interview early]' },
-      { speaker: 'candidate', text: '[Candidate ended the interview early]' },
-      { speaker: 'candidate', text: '[Candidate ended the interview early]' },
-      { speaker: 'candidate', text: '[Candidate ended the interview early]' },
+      ...Array.from({ length: 5 }, () => ({
+        speaker: 'candidate',
+        text: '[Candidate ended the interview early]',
+      })),
     ];
-    setPhase(PHASE.PROCESSING);
-    fetchNextAI(endSignal);
+
+    try {
+      const { response } = await requestAI(endSignal);
+      finishWithScorecard(response);
+    } catch (err) {
+      console.error(err);
+      setScorecard('Could not generate the scorecard. Please try again.');
+      setPhase(PHASE.COMPLETE);
+    }
   };
+
+  /* ── Countdown after scorecard, then leave the page ── */
+  useEffect(() => {
+    if (phase !== PHASE.COMPLETE || !autoClose) return;
+
+    if (closeCountdown <= 0) {
+      navigate(AFTER_INTERVIEW_ROUTE, { replace: true });
+      return;
+    }
+
+    const timer = setTimeout(() => setCloseCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [phase, autoClose, closeCountdown, navigate]);
 
   /* ───────────────────────────────────────── */
   /* RENDER                                     */
@@ -229,7 +298,7 @@ export default function VoiceInterview() {
             <button className="md:hidden text-slate-400" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                  d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+                  d={isMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'} />
               </svg>
             </button>
           </div>
@@ -299,11 +368,7 @@ export default function VoiceInterview() {
                   style={{ width: `${(Math.min(questionIndex, TOTAL) / TOTAL) * 100}%` }}
                 />
               </div>
-              <button
-                onClick={restart}
-                title="Restart"
-                className="text-slate-500 hover:text-white transition"
-              >
+              <button onClick={restart} title="Restart" className="text-slate-500 hover:text-white transition">
                 <RotateCcw className="w-4 h-4" />
               </button>
             </div>
@@ -315,18 +380,24 @@ export default function VoiceInterview() {
                   <div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed
                     ${turn.speaker === 'ai'
                       ? 'bg-slate-800 text-slate-200 rounded-tl-none'
-                      : 'bg-blue-600 text-white rounded-tr-none'
-                    }`}>
+                      : 'bg-blue-600 text-white rounded-tr-none'}`}>
                     {turn.text}
                   </div>
                 </div>
               ))}
 
-              {/* Live transcript (user is speaking) */}
               {transcript && (
                 <div className="flex justify-end">
                   <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tr-none text-sm bg-blue-600/50 border border-blue-500/30 text-blue-200 italic">
                     {transcript}
+                  </div>
+                </div>
+              )}
+
+              {aiText && phase !== PHASE.LISTENING && conversationHistory.length === 0 && (
+                <div className="flex justify-start">
+                  <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tl-none text-sm bg-slate-800 text-slate-200">
+                    {aiText}
                   </div>
                 </div>
               )}
@@ -348,10 +419,8 @@ export default function VoiceInterview() {
                     ? 'bg-red-600 hover:bg-red-500 shadow-red-600/40 scale-110'
                     : micBusy
                       ? 'bg-slate-700 cursor-not-allowed'
-                      : 'bg-slate-700'
-                  }`}
+                      : 'bg-slate-700'}`}
               >
-                {/* Pulsing ring when listening */}
                 {micActive && (
                   <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-30" />
                 )}
@@ -359,15 +428,13 @@ export default function VoiceInterview() {
                   ? <MicOff className="w-8 h-8 text-white" />
                   : phase === PHASE.SPEAKING
                     ? <Volume2 className="w-8 h-8 text-blue-400 animate-pulse" />
-                    : <Mic className="w-8 h-8 text-slate-400" />
-                }
+                    : <Mic className="w-8 h-8 text-slate-400" />}
               </button>
 
               <p className="text-xs text-slate-600">
                 {micActive ? 'Tap to stop and send your answer' : 'Mic activates automatically after the AI speaks'}
               </p>
 
-              {/* End Interview Button */}
               <button
                 onClick={endInterview}
                 disabled={micBusy && phase !== PHASE.LISTENING}
@@ -396,7 +463,19 @@ export default function VoiceInterview() {
               </pre>
             </div>
 
-            <div className="flex gap-3">
+            {autoClose && (
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm text-slate-400">
+                <span>Returning to services in {closeCountdown}s</span>
+                <button
+                  onClick={() => setAutoClose(false)}
+                  className="text-blue-400 hover:text-blue-300 font-semibold"
+                >
+                  Stay here
+                </button>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={restart}
                 className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
@@ -404,7 +483,7 @@ export default function VoiceInterview() {
                 <RotateCcw className="w-4 h-4" /> Try Again
               </button>
               <button
-                onClick={() => navigate('/services')}
+                onClick={() => navigate(AFTER_INTERVIEW_ROUTE)}
                 className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl font-bold transition-colors"
               >
                 Back to Services
